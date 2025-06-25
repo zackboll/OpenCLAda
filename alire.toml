@@ -1,0 +1,20 @@
+name = "openclada"
+description = "OpenCL Alire crate based off work of https://github.com/flyx/OpenCLAda"
+version = "0.1.0-dev"
+
+authors = [
+  "Felix Krause", 
+  "Zack Boll",
+  ]
+maintainers = ["Zack Boll <zackboll@gmail.com>"]
+maintainers-logins = ["zackboll"]
+tags = [
+  "opencl",
+  "binding",
+  "graphics",
+  "compute",
+]
+[gpr-set-externals]
+Windowing_System = "x11"
+[[depends-on]]
+libx11 = "^1"
