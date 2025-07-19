@@ -20,9 +20,9 @@ library project OpenCL is
    package Compiler is
       case Mode is
          when "debug" =>
-            for Default_Switches ("ada") use ("-g", "-gnatwa", "-gnatf", "-gnat05", "-gnata");
+            for Default_Switches ("ada") use ("-g", "-gnatwa", "-gnatf", "-gnat12", "-gnata");
          when "release" =>
-            for Default_Switches ("ada") use ("-O2", "-gnatn2", "-gnat05");
+            for Default_Switches ("ada") use ("-O2", "-gnatn2", "-gnat12");
       end case;
    end Compiler;
 
