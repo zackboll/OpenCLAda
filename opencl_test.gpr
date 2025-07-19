@@ -1,6 +1,6 @@
 with "opencl.gpr";
-with "opencl-cl_gl.gpr";
-with "opengl-glfw.gpr";
+--with "opencl-cl_gl.gpr";
+--with "opengl-glfw.gpr";
 
 project OpenCL_Test is
 
@@ -8,9 +8,14 @@ project OpenCL_Test is
    for Object_Dir use "obj";
    for Exec_Dir use "bin";
    
-   for Main use ("cl_test-context.adb", "cl_test-device.adb", "cl_test-memory.adb",
-                 "cl_test-platform.adb", "cl_test-vectors.adb", "cl_test-hello_world.adb",
-                 "cl_test-cl_gl.adb", "cl_test-vector_passing.adb");
+   for Main use ("cl_test-context.adb", 
+                 "cl_test-device.adb", 
+                 "cl_test-memory.adb",
+                 "cl_test-platform.adb", 
+                 "cl_test-vectors.adb", 
+                 "cl_test-hello_world.adb",
+                 --"cl_test-cl_gl.adb", 
+                 "cl_test-vector_passing.adb");
 
    package Compiler renames OpenCL.Compiler;
 

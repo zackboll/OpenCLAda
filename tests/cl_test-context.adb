@@ -33,7 +33,6 @@ procedure CL_Test.Context is
    pragma Assert (Dvs'Length > 0);
 
    use Ada.Strings.Fixed;
-   use type CL.Size;
 
 begin
    ATI.Put_Line ("Device count is" & Dvs'Length'Img);

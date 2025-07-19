@@ -71,7 +71,14 @@ package body CL.Memory.Buffers is
                                  Host_Ptr => Source (Source'First)'Address,
                                  Error    => Error'Unchecked_Access);
          Helpers.Error_Handler (Error);
-         return Buffer'(Ada.Finalization.Controlled with Location => Raw_Object);
+         --  return Buffer'(Ada.Finalization.Controlled with Location => Raw_Object);
+         -- TODO: work around compilation issue
+         declare
+            Test_Buffer : Buffer;
+         begin
+            Test_Buffer.Location := Raw_Object;
+            return Test_Buffer;
+         end;
       end Create_From_Source;
 
       --function Create_Sub_Buffer_Region (Buff    : Buffer;
