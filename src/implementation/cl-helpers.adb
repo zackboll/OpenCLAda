@@ -108,7 +108,7 @@ package body CL.Helpers is
       Error_Handler (Error);
       declare
          Raw_String : aliased Interfaces.C.char_array :=
-           (1 .. Interfaces.C.size_t (Value_Count) => <>);
+           [1 .. Interfaces.C.size_t (Value_Count) => <>];
       begin
          Error := C_Getter (Object.Location, Param, Value_Count,
                             Raw_String'Access, null);

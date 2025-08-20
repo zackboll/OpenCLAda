@@ -34,7 +34,7 @@ procedure CL_Test.Vector_Passing is
    package IO renames Ada.Text_IO;
    use CL.Vectors;
 
-   Destination_List : aliased constant Int2_Array := New_Array ((1 => (0, 0)));
+   Destination_List : aliased constant Int2_Array := New_Array ([1 => [0, 0]]);
 
    package Int2_Objects is
      new CL.Queueing.Memory_Objects (Element      => CL.Vectors.Int2,
@@ -60,7 +60,7 @@ begin
    Platform    := CL.Platforms.List (1);
    Device      := Platform.Devices (CL.Platforms.Device_Kind'(GPU => True,
                                                               others => False)) (1);
-   Device_List := (1 => Device);
+   Device_List := [1 => Device];
    Context     := CL.Contexts.Constructors.Create_For_Devices (Platform, Device_List);
    Destination := CL.Memory.Buffers.Constructors.Create (Context, CL.Memory.Write_Only, CL.Vectors.Int2'Size / System.Storage_Unit);
    Queue       := CL.Command_Queues.Constructors.Create (Context, Device,

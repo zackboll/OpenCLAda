@@ -50,9 +50,9 @@ package body CL.Contexts is
                                    return Context is
          Error       : aliased Enumerations.Error_Code;
          Ret_Context : System.Address;
-         Props       : Address_List := (Value (Platform_Identifier),
+         Props       : Address_List := [Value (Platform_Identifier),
                                         CL_Object (Platform).Location,
-                                        System.Null_Address);
+                                        System.Null_Address];
          function Raw_Device_List is
            new Helpers.Raw_List (Element_T => Platforms.Device,
                                  Element_List_T => Platforms.Device_List);
@@ -88,9 +88,9 @@ package body CL.Contexts is
                                  return Context is
          Error       : aliased Enumerations.Error_Code;
          Ret_Context : System.Address;
-         Props       : Address_List := (Value (Platform_Identifier),
+         Props       : Address_List := [Value (Platform_Identifier),
                                         CL_Object (Platform).Location,
-                                        System.Null_Address);
+                                        System.Null_Address];
          function To_Address is new
            Ada.Unchecked_Conversion (Source => Error_Callback,
                                      Target => System.Address);

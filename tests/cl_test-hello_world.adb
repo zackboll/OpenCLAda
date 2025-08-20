@@ -52,19 +52,19 @@ procedure CL_Test.Hello_World is
    Event       : CL.Events.Event;
 
    Hello_World : constant String := "Hello world!";
-   Output      : aliased constant Aliased_String := (Hello_World'Range => <>);
+   Output      : aliased constant Aliased_String := [Hello_World'Range => <>];
 
    Kernel_File : IO.File_Type;
 
-   Global_Work_Size : aliased CL.Size_List := (1 => Hello_World'Length);
-   Local_Work_Size  : aliased CL.Size_List := (1 => 1);
+   Global_Work_Size : aliased CL.Size_List := [1 => Hello_World'Length];
+   Local_Work_Size  : aliased CL.Size_List := [1 => 1];
 begin
    IO.Put_Line ("Gathering platform and devices");
    Platform    := CL.Platforms.List (1);
    Device      := Platform.Devices (CL.Platforms.Device_Kind_All) (Platform.Devices (CL.Platforms.Device_Kind_All)'First);
-   Device_List := (1 => Device);
+   Device_List := [1 => Device];
    IO.Put_Line ("Creating context");
-   Context     := CL.Contexts.Constructors.Create_For_Devices (Platform, (1 => Device));
+   Context     := CL.Contexts.Constructors.Create_For_Devices (Platform, [1 => Device]);
    IO.Put_Line ("Creating buffer");
    Buffer      := String_Buffer (Context, CL.Memory.Write_Only, Output);
 

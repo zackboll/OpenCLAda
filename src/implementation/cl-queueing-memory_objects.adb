@@ -135,8 +135,8 @@ package body CL.Queueing.Memory_Objects is
 
       Error     : Enumerations.Error_Code;
       Ret_Event : aliased System.Address;
-      Origin_3D : Size_Vector3D := (1 => Origin (1), 2 => Origin (2), 3 => 0);
-      Region_3D : Size_Vector3D := (1 => Region (1), 2 => Region (2), 3 => 1);
+      Origin_3D : Size_Vector3D := [1 => Origin (1), 2 => Origin (2), 3 => 0];
+      Region_3D : Size_Vector3D := [1 => Region (1), 2 => Region (2), 3 => 1];
    begin
       if Wait_For'Length > 0 then
          declare
@@ -224,8 +224,8 @@ package body CL.Queueing.Memory_Objects is
                             Wait_For     : Events.Event_List := Events.No_Events) is
       Error     : Enumerations.Error_Code;
       Ret_Event : aliased System.Address;
-      Origin_3D : Size_Vector3D := (1 => Origin (1), 2 => Origin (2), 3 => 0);
-      Region_3D : Size_Vector3D := (1 => Region (1), 2 => Region (2), 3 => 1);
+      Origin_3D : Size_Vector3D := [1 => Origin (1), 2 => Origin (2), 3 => 0];
+      Region_3D : Size_Vector3D := [1 => Region (1), 2 => Region (2), 3 => 1];
    begin
       if Wait_For'Length > 0 then
          declare
@@ -314,11 +314,11 @@ package body CL.Queueing.Memory_Objects is
                            Wait_For     : Events.Event_List := Events.No_Events) is
       Error     : Enumerations.Error_Code;
       Ret_Event : aliased System.Address;
-      Src_Origin_3D : Size_Vector3D := (1 => Src_Origin (1),
-                                        2 => Src_Origin (2), 3 => 0);
-      Dest_Origin_3D : Size_Vector3D := (1 => Dest_Origin (1),
-                                         2 => Dest_Origin (2), 3 => 0);
-      Region_3D : Size_Vector3D := (1 => Region (1), 2 => Region (2), 3 => 1);
+      Src_Origin_3D : Size_Vector3D := [1 => Src_Origin (1),
+                                        2 => Src_Origin (2), 3 => 0];
+      Dest_Origin_3D : Size_Vector3D := [1 => Dest_Origin (1),
+                                         2 => Dest_Origin (2), 3 => 0];
+      Region_3D : Size_Vector3D := [1 => Region (1), 2 => Region (2), 3 => 1];
    begin
       if Wait_For'Length > 0 then
          declare

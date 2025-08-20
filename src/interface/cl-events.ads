@@ -58,7 +58,7 @@ package CL.Events is
 
    function Ended_At (Source : Event) return ULong;
    
-   No_Events : constant Event_List (1 .. 0) := (others => <>);
+   No_Events : constant Event_List (1 .. 0) := [others => <>];
 
 private
    for Command_Type use (NDRange_Kernel       => 16#11F0#,

@@ -5,13 +5,6 @@ library project OpenCL is
    
    for Languages use ("ada");
    
-   -- this scenario variable is shared with OpenGLAda, but only
-   -- the CL_GL extension depends on OpenGL, so we redeclare it here.
-   type Windowing_System_Type is
-      ("windows", "x11", "quartz");
-   Windowing_System : Windowing_System_Type
-     := external ("Windowing_System");
-   
    type Mode_Type is ("debug", "release");
    Mode : Mode_Type := external ("mode", "debug");
    
@@ -27,13 +20,7 @@ library project OpenCL is
    end Compiler;
 
    package Linker is
-      case Windowing_System is
-         when "windows" =>
-            for Linker_Options use ("-lOpenCL");
-         when "x11" =>
-            for Linker_Options use ("-lOpenCL");
-         when "quartz" =>
-            for Linker_Options use ("-Wl,-framework,OpenCL");
-      end case;
+      for Linker_Options use ("-lOpenCL");
    end Linker;
+   
 end OpenCL;

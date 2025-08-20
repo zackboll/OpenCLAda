@@ -18,7 +18,7 @@ package body CL.Vector_Set is
    function CL_Vector (X, Y : Base) return R2 is
       Value : R2;
    begin
-      Value.S := (X, Y);
+      Value.S := [X, Y];
       return Value;
    end CL_Vector;
    
@@ -32,7 +32,7 @@ package body CL.Vector_Set is
    function CL_Vector (X, Y, Z : Base) return R3 is
       Value : R3;
    begin
-      Value.S := (X, Y, Z);
+      Value.S := [X, Y, Z];
       return Value;
    end CL_Vector;
    
@@ -46,7 +46,7 @@ package body CL.Vector_Set is
    function CL_Vector (X, Y, Z, W : Base) return R4 is
       Value : R4;
    begin
-      Value.S := (X, Y, Z, W);
+      Value.S := [X, Y, Z, W];
       return Value;
    end CL_Vector;
    
@@ -60,7 +60,7 @@ package body CL.Vector_Set is
    function CL_Vector (S0, S1, S2, S3, S4, S5, S6, S7 : Base) return R8 is
       Value : R8;
    begin
-      Value.S := (S0, S1, S2, S3, S4, S5, S6, S7);
+      Value.S := [S0, S1, S2, S3, S4, S5, S6, S7];
       return Value;
    end CL_Vector;
    
@@ -75,8 +75,8 @@ package body CL.Vector_Set is
                        S8, S9, SA, SB, SC, SD, SE, SF : Base) return R16 is
       Value : R16;
    begin
-      Value.S := (S0, S1, S2, S3, S4, S5, S6, S7,
-                  S8, S9, SA, SB, SC, SD, SE, SF);
+      Value.S := [S0, S1, S2, S3, S4, S5, S6, S7,
+                  S8, S9, SA, SB, SC, SD, SE, SF];
       return Value;
    end CL_Vector;
    
