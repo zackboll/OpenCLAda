@@ -1,19 +1,47 @@
 library project OpenCL is
-   for Library_Name use "OpenCLAda";
-   for Object_Dir use "obj";
-   for Library_Dir use "lib";
-   
-   for Languages use ("ada");
-   
+   -----------------------------------------------------------------------------
+   --  Scenario variables
+   -----------------------------------------------------------------------------
+
    type Mode_Type is ("debug", "release");
    Mode : Mode_Type := external ("mode", "debug");
-   
-   for Source_Dirs use ("src/interface", "src/implementation");
+
+   type Library_Kinds is ("static", "relocatable");
+   Given_Library_Kind : Library_Kinds := external ("Library_Type", "static");
+
+   -----------------------------------------------------------------------------
+   --  Global configuration
+   -----------------------------------------------------------------------------
+
+   for Languages use ("ada");
+   for Library_Name use "OpenCLAda";
+
+   for Source_Dirs use ("src/interface", 
+                        "src/implementation");
+   for Object_Dir use "obj";
+   for Library_Dir use "lib";
+   for Library_Kind use Given_Library_Kind;
+
+   -----------------------------------------------------------------------------
+   --  Packages
+   -----------------------------------------------------------------------------
+   package Ide is
+      for Vcs_Kind use "Git";
+   end Ide;
+
+   package Builder is
+      case Mode is
+         when "debug" =>
+            for Global_Compilation_Switches ("ada") use ("-s", "-g");
+         when "release" =>
+            for Global_Compilation_Switches ("ada") use ("-s");
+      end case;
+   end Builder;
 
    package Compiler is
       case Mode is
          when "debug" =>
-            for Default_Switches ("ada") use ("-g", "-gnatwa", "-gnatf", "-gnat2022", "-gnata");
+            for Default_Switches ("ada") use ("-g", "-gnatwa", "-gnatf", "-gnat2022", "-gnata", "-gnatVa");
          when "release" =>
             for Default_Switches ("ada") use ("-O2", "-gnatn2", "-gnat2022");
       end case;
