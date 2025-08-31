@@ -1,0 +1,24 @@
+name = "tests"
+description = "Unit tests for OpenCLAda"
+version = "0.1.0-dev"
+
+authors = ["Zack Boll"]
+maintainers = ["Zack Boll <zackboll@gmail.com>"]
+maintainers-logins = ["zackboll"]
+licenses = "MIT"
+website = ""
+tags = ["opencl", "graphics", "compute"]
+
+executables = ["tests"]
+
+[[depends-on]]
+openclada = "*"
+
+[[pins]]
+openclada = { path='..' }
+
+[[depends-on]]
+aunit = "^24.0.0"
+
+[[depends-on]]
+gnatcov = "^22.0.1"
