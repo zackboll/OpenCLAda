@@ -3,7 +3,7 @@ authors = [
   "Zack Boll",
   ]
 description = "OpenCL Alire crate based off work of https://github.com/flyx/OpenCLAda"
-licenses = "MIT"
+licenses = "ISC"
 maintainers = [
 "Zack Boll <zackboll@gmail.com>",
 ]
