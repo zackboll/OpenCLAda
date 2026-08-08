@@ -99,8 +99,8 @@ begin
         CL.Platforms.CQ_Property_Vector'(Reserved => [others => False],
                                          others   => False));
 
-   IO.Open (File => Kernel_File, 
-            Mode => IO.In_File, 
+   IO.Open (File => Kernel_File,
+            Mode => IO.In_File,
             Name => "src/vector_passing.cl");
    declare
       Kernel_Source : constant String :=

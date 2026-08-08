@@ -22,6 +22,11 @@ package body CL.Memory.Buffers is
 
    use type System.Address;
 
+   function From_Raw (Raw_Object : System.Address) return Buffer is
+   begin
+      return Buffer'(Ada.Finalization.Controlled with Location => Raw_Object);
+   end From_Raw;
+
    package body Constructors is
 
       function Create (Context         : Contexts.Context'Class;
@@ -40,7 +45,7 @@ package body CL.Memory.Buffers is
             Host_Ptr => System.Null_Address,
             Error    => Error'Unchecked_Access);
          Helpers.Error_Handler (Error);
-         return Buffer'(Ada.Finalization.Controlled with Location => Raw_Object);
+         return From_Raw (Raw_Object);
       end Create;
 
       function Create_From_Source (Context              : Contexts.Context'Class;
@@ -79,7 +84,7 @@ package body CL.Memory.Buffers is
                                  Host_Ptr => Source (Source'First)'Address,
                                  Error    => Error'Unchecked_Access);
           Helpers.Error_Handler (Error);
-          return Buffer'(Ada.Finalization.Controlled with Location => Raw_Object);
+          return From_Raw (Raw_Object);
       end Create_From_Source;
 
    end Constructors;
@@ -103,18 +108,17 @@ package body CL.Memory.Buffers is
          Info        => Region_Obj'Address, 
          Error       => Error'Unchecked_Access);
       Helpers.Error_Handler (Error);
-      return Buffer'(Ada.Finalization.Controlled with Location => Raw_Object);
+           return From_Raw (Raw_Object);
    end Create_Sub_Buffer_Region;
 
    function Associated_Object (Source : Buffer) return Buffer is
       Raw_Object : constant System.Address := Associated_Object_Raw (Source);
    begin
       if Raw_Object = System.Null_Address then
-         return Buffer'(Ada.Finalization.Controlled with
-                        Location => System.Null_Address);
+         return From_Raw (System.Null_Address);
       end if;
 
       Helpers.Error_Handler (API.Retain_Mem_Object (Raw_Object));
-      return Buffer'(Ada.Finalization.Controlled with Location => Raw_Object);
+      return From_Raw (Raw_Object);
    end Associated_Object;
 end CL.Memory.Buffers;
