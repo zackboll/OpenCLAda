@@ -1,0 +1,10 @@
+{
+  "folders": [
+    { "path": "../tests" },
+    { "path": ".." }
+  ],
+  "settings": {
+    "files.autoSave": "onFocusChange",
+    "sarif-viewer.connectToGithubCodeScanning": "off"
+  }
+}
