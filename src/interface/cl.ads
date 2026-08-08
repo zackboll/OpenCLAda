@@ -113,6 +113,11 @@ package CL is
    -----------------------------------------------------------------------------
    --  Exceptions
    -----------------------------------------------------------------------------
+   Invalid_Device_Partition_Count  : exception;
+   Invalid_Linker_Options          : exception;
+   Invalid_Compiler_Options        : exception;
+   Invalid_Image_Descriptor        : exception;
+   Invalid_Property                : exception;
    Invalid_Global_Work_Size        : exception;
    Invalid_Mip_Level               : exception;
    Invalid_Buffer_Size             : exception;

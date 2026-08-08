@@ -26,7 +26,9 @@ package CL.Memory.Images is
                          Unsigned_Int8, Unsigned_Int16, Unsigned_Int32,
                          Half_Float, Full_Float);
 
-   type Image_Type is (T_Image2D, T_Image3D);
+   type Image_Type is
+     (T_Image2D, T_Image3D, T_Image2D_Array, T_Image1D, T_Image1D_Array,
+      T_Image1D_Buffer);
 
    type Image_Format is
       record
@@ -48,6 +50,19 @@ package CL.Memory.Images is
 
    type Image is abstract new Memory_Object with null record;
 
+   type Image_Descriptor is record
+      Kind          : Image_Type;
+      Width         : CL.Size;
+      Height        : CL.Size := 0;
+      Depth         : CL.Size := 0;
+      Array_Size    : CL.Size := 0;
+      Row_Pitch     : CL.Size := 0;
+      Slice_Pitch   : CL.Size := 0;
+      Mip_Levels    : UInt := 0;
+      Samples       : UInt := 0;
+      Buffer        : System.Address := System.Null_Address;
+   end record;
+
    function Format (Source : Image) return Image_Format;
 
    function Element_Size (Source : Image) return CL.Size;
@@ -57,11 +72,26 @@ package CL.Memory.Images is
    function Width (Source : Image) return CL.Size;
 
    function Height (Source : Image) return CL.Size;
+   function Array_Size (Source : Image) return CL.Size;
+   function Mip_Levels (Source : Image) return UInt;
+   function Samples (Source : Image) return UInt;
+   function Associated_Buffer_Raw (Source : Image) return System.Address;
 
+   type Generic_Image is new Image with null record;
    type Image2D is new Image with null record;
    type Image3D is new Image with null record;
 
    package Constructors is
+
+      function Create
+        (Context         : Contexts.Context'Class;
+         Mode            : Access_Kind;
+         Format          : Image_Format;
+         Descriptor      : Image_Descriptor;
+         Host_Pointer    : System.Address := System.Null_Address;
+         Use_Host_Memory : Boolean := False;
+         Host_Access     : Host_Access_Kind := Host_Read_Write)
+         return Generic_Image;
 
       --  Analogous to Create_Buffer
       function Create_Image2D (Context   : Contexts.Context'Class;
@@ -150,10 +180,16 @@ private
                          Full_Float       => 16#10DE#);
    for Channel_Type'Size use UInt'Size;
 
-   for Image_Type use (T_Image2D => 16#10F1#,
-                       T_Image3D => 16#10f2#);
+   for Image_Type use
+     (T_Image2D        => 16#10F1#,
+      T_Image3D        => 16#10F2#,
+      T_Image2D_Array  => 16#10F3#,
+      T_Image1D        => 16#10F4#,
+      T_Image1D_Array  => 16#10F5#,
+      T_Image1D_Buffer => 16#10F6#);
    for Image_Type'Size use UInt'Size;
 
    pragma Convention (C, Image_Format);
+   pragma Convention (C, Image_Descriptor);
    pragma Convention (C, Image_Format_List);
 end CL.Memory.Images;

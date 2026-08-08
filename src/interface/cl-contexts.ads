@@ -29,15 +29,17 @@ package CL.Contexts is
 
    package Constructors is
 
-      function Create_For_Devices (Platform : Platforms.Platform'Class;
-                                   Devices  : Platforms.Device_List;
-                                   Callback : Error_Callback := null)
-                                   return Context;
+      function Create_For_Devices
+        (Platform          : Platforms.Platform'Class;
+         Devices           : Platforms.Device_List;
+         Callback          : Error_Callback := null;
+         Interop_User_Sync : Boolean := False) return Context;
 
-      function Create_From_Type (Platform : Platforms.Platform'Class;
-                                 Dev_Type : Platforms.Device_Kind;
-                                 Callback : Error_Callback := null)
-                                 return Context;
+      function Create_From_Type
+        (Platform          : Platforms.Platform'Class;
+         Dev_Type          : Platforms.Device_Kind;
+         Callback          : Error_Callback := null;
+         Interop_User_Sync : Boolean := False) return Context;
 
    end Constructors;
 
@@ -67,6 +69,7 @@ private
                                   User_Data    : Error_Callback);
    pragma Convention (C, Callback_Dispatcher);
 
-   Platform_Identifier : constant := 16#1084#;
+   Context_Platform_Property          : constant Address_Equivalent := 16#1084#;
+   Context_Interop_User_Sync_Property : constant Address_Equivalent := 16#1085#;
 
 end CL.Contexts;

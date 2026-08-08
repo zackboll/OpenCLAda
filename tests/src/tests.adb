@@ -1,11 +1,12 @@
-with Ada.Text_IO;
-with AUnit.Run;
 with AUnit.Reporter.Text;
+with AUnit.Run;
+
+with CL_Test.Suite;
 
 procedure Tests is
+   procedure Run is new AUnit.Run.Test_Runner (CL_Test.Suite.Get);
 
-  --  procedure Run is new AUnit.Run.Test_Runner ();
-
+   Reporter : AUnit.Reporter.Text.Text_Reporter;
 begin
-   Ada.Text_IO.Put_Line ("Hello, World!");
+   Run (Reporter);
 end Tests;

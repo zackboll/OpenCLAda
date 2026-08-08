@@ -33,11 +33,11 @@ package body CL.Command_Queues is
           Helpers.Record_To_Bitfield (Bit_Vector_Record => Platforms.CQ_Property_Vector,
                                       Used_Bits => 2);
      begin
-        Raw := API.Create_Command_Queue (CL_Object (Attach_To).Location,
-                                         CL_Object (Device).Location,
-                                         To_Bitfield (Properties),
-                                         Error'Unchecked_Access);
-        Helpers.Error_Handler (Error);
+        Raw := API.Create_Command_Queue (Attach_To => CL_Object (Attach_To).Location,
+                                         Device => CL_Object (Device).Location,
+                                         Properties => To_Bitfield (Properties),
+                                         Error => Error'Unchecked_Access);
+        Helpers.Error_Handler (Error => Error);
         return Queue'(Ada.Finalization.Controlled with
                       Location => Raw);
      end Create;
@@ -48,7 +48,7 @@ package body CL.Command_Queues is
       use type System.Address;
    begin
       if Object.Location /= System.Null_Address then
-         Helpers.Error_Handler (API.Retain_Command_Queue (Object.Location));
+         Helpers.Error_Handler (Error => API.Retain_Command_Queue (Queue => Object.Location));
       end if;
    end Adjust;
 
@@ -56,7 +56,7 @@ package body CL.Command_Queues is
       use type System.Address;
    begin
       if Object.Location /= System.Null_Address then
-         Helpers.Error_Handler (API.Release_Command_Queue (Object.Location));
+         Helpers.Error_Handler (Error => API.Release_Command_Queue (Queue => Object.Location));
       end if;
    end Finalize;
 
@@ -79,8 +79,8 @@ package body CL.Command_Queues is
                                    Parameter_T => Enumerations.Command_Queue_Info,
                                    C_Getter    => API.Get_Command_Queue_Info);
    begin
-      return Platforms.Device'(Ada.Finalization.Controlled with
-                               Location => Getter (Object, Enumerations.Queue_Device));
+      return Platforms.Raw_Interop.Wrap_Device
+        (Location => Getter (Object, Enumerations.Queue_Device));
    end Device;
 
    function Reference_Count (Object : Queue) return CL.UInt is
@@ -106,11 +106,11 @@ package body CL.Command_Queues is
 
    procedure Flush (Target : Queue) is
    begin
-      Helpers.Error_Handler (API.Flush (Target.Location));
+      Helpers.Error_Handler (Error => API.Flush (Queue => Target.Location));
    end Flush;
 
    procedure Finish (Target : Queue) is
    begin
-      Helpers.Error_Handler (API.Finish (Target.Location));
+      Helpers.Error_Handler (Error => API.Finish (Queue => Target.Location));
    end Finish;
 end CL.Command_Queues;

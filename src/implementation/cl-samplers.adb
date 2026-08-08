@@ -55,7 +55,7 @@ package body CL.Samplers is
       use type System.Address;
    begin
       if Object.Location /= System.Null_Address then
-         Helpers.Error_Handler (API.Release_Sampler (Object.Location));
+         Helpers.Error_Handler (Error => API.Release_Sampler (Target => Object.Location));
       end if;
    end Finalize;
 

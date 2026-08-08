@@ -31,20 +31,81 @@ package body CL.Kernels is
                                 Parameter_T => Enumerations.Kernel_Info,
                                 C_Getter    => API.Get_Kernel_Info);
 
+   generic
+      type Result_Type is private;
+   function Get_Argument_Value
+     (Source : Kernel; Index : UInt; Param : Enumerations.Kernel_Arg_Info)
+      return Result_Type;
+
+   function Get_Argument_Value
+     (Source : Kernel; Index : UInt; Param : Enumerations.Kernel_Arg_Info)
+      return Result_Type
+   is
+      Result : aliased Result_Type;
+      Error  : Enumerations.Error_Code;
+   begin
+      Error := API.Get_Kernel_Arg_Info
+        (Source      => Source.Location, 
+         Arg_Index   => Index, 
+         Param       => Param,
+         Value_Size  => Result_Type'Size / System.Storage_Unit, 
+         Value       => Result'Address, 
+         Return_Size => null);
+      Helpers.Error_Handler (Error);
+      return Result;
+   end Get_Argument_Value;
+
+   function Get_Argument_String
+     (Source : Kernel; Index : UInt; Param : Enumerations.Kernel_Arg_Info)
+      return String
+   is
+      Length : aliased Size := 0;
+      Error  : Enumerations.Error_Code;
+   begin
+      Error := API.Get_Kernel_Arg_Info
+        (Source      => Source.Location, 
+         Arg_Index   => Index, 
+         Param       => Param, 
+         Value_Size  => 0, 
+         Value       => System.Null_Address,
+         Return_Size => Length'Unchecked_Access);
+      Helpers.Error_Handler (Error);
+
+      if Length = 0 then
+         return "";
+      end if;
+
+      declare
+         Buffer : aliased String (1 .. Integer (Length));
+      begin
+         Error := API.Get_Kernel_Arg_Info
+           (Source      => Source.Location, 
+            Arg_Index   => Index, 
+            Param       => Param, 
+            Value_Size  => Length, 
+            Value       => Buffer'Address, 
+            Return_Size => null);
+         Helpers.Error_Handler (Error);
+         return Buffer (Buffer'First .. Buffer'Last - 1);
+      end;
+   end Get_Argument_String;
+
    -----------------------------------------------------------------------------
    --  Implementations
    -----------------------------------------------------------------------------
 
    package body Constructors is
-      function Create (Source : Programs.Program'Class; Name : String)
-                       return Kernel is
-         Error      : aliased Enumerations.Error_Code;
-         Ret_Kernel : System.Address;
-      begin
-         Ret_Kernel := API.Create_Kernel (CL_Object (Source).Location,
-                                          IFC.Strings.New_String (Name),
-                                          Error'Unchecked_Access);
-         Helpers.Error_Handler (Error);
+       function Create (Source : Programs.Program'Class; Name : String)
+                        return Kernel is
+          C_Name     : IFC.Strings.chars_ptr := IFC.Strings.New_String (Name);
+          Error      : aliased Enumerations.Error_Code;
+          Ret_Kernel : System.Address;
+       begin
+          Ret_Kernel := API.Create_Kernel (Source => CL_Object (Source).Location,
+                                           Name => C_Name,
+                                           Error => Error'Unchecked_Access);
+          IFC.Strings.Free (C_Name);
+          Helpers.Error_Handler (Error);
          return Kernel'(Ada.Finalization.Controlled with
                         Location => Ret_Kernel);
       end Create;
@@ -54,18 +115,21 @@ package body CL.Kernels is
          Num_Kernels     : aliased UInt;
          Error           : Enumerations.Error_Code;
       begin
-         Error := API.Create_Kernels_In_Program(CL_Object (Source).Location, 0,
-                                                System.Null_Address,
-                                                Num_Kernels'Unchecked_Access);
+         Error := API.Create_Kernels_In_Program
+           (Source      => CL_Object (Source).Location, 
+            Num_Kernels => 0,
+            Kernels     => System.Null_Address,
+            Return_Size => Num_Kernels'Unchecked_Access);
          Helpers.Error_Handler (Error);
          declare
             Raw_Kernels : Address_List (1 .. Integer (Num_Kernels));
             Ret_Kernels : Kernel_List  (1 .. Integer (Num_Kernels));
          begin
-            Error := API.Create_Kernels_In_Program (CL_Object (Source).Location,
-                                                    Num_Kernels,
-                                                    Raw_Kernels (1)'Address,
-                                                    null);
+            Error := API.Create_Kernels_In_Program 
+              (Source      => CL_Object (Source).Location,
+               Num_Kernels => Num_Kernels,
+               Kernels     => Raw_Kernels (1)'Address,
+               Return_Size => null);
             Helpers.Error_Handler (Error);
             for Index in Raw_Kernels'Range loop
                Ret_Kernels (Index) := Kernel'(Ada.Finalization.Controlled with
@@ -105,7 +169,7 @@ package body CL.Kernels is
                                          Index  : UInt;
                                          Value : Runtime_Object'Class) is
    begin
-      Helpers.Error_Handler (API.Set_Kernel_Arg
+      Helpers.Error_Handler (Error => API.Set_Kernel_Arg
         (Target     => Target.Location,
          Arg_Index  => Index,
          Value_Size => Standard'Address_Size / System.Storage_Unit,
@@ -154,6 +218,59 @@ package body CL.Kernels is
       return New_Program_Reference (Getter (Source, Enumerations.Program));
    end Program;
 
+   function Attributes (Source : Kernel) return String is
+      function Getter is
+        new Helpers.Get_Parameters (Return_Element_T => Character,
+                                    Return_T         => String,
+                                    Parameter_T      => Enumerations.Kernel_Info,
+                                    C_Getter         => API.Get_Kernel_Info);
+   begin
+      return Getter (Source, Enumerations.Attributes);
+   end Attributes;
+
+   function Argument_Address
+     (Source : Kernel; Index : UInt) return Argument_Address_Qualifier
+   is
+      function Getter is
+        new Get_Argument_Value (Argument_Address_Qualifier);
+   begin
+      return Getter (Source, Index, Enumerations.Address_Qualifier);
+   end Argument_Address;
+
+   function Argument_Access
+     (Source : Kernel; Index : UInt) return Argument_Access_Qualifier
+   is
+      function Getter is
+        new Get_Argument_Value (Argument_Access_Qualifier);
+   begin
+      return Getter (Source, Index, Enumerations.Access_Qualifier);
+   end Argument_Access;
+
+   function Argument_Type_Name
+     (Source : Kernel; Index : UInt) return String is
+   begin
+      return Get_Argument_String (Source => Source, 
+                                  Index  => Index, 
+                                  Param  => Enumerations.Type_Name);
+   end Argument_Type_Name;
+
+   function Argument_Name
+     (Source : Kernel; Index : UInt) return String is
+   begin
+      return Get_Argument_String (Source => Source, 
+                                  Index  => Index, 
+                                  Param  => Enumerations.Arg_Name);
+   end Argument_Name;
+
+   function Argument_Type_Qualifiers
+     (Source : Kernel; Index : UInt) return Argument_Type_Qualifier
+   is
+      function Getter is
+        new Get_Argument_Value (Argument_Type_Qualifier);
+   begin
+      return Getter (Source, Index, Enumerations.Type_Qualifier);
+   end Argument_Type_Qualifiers;
+
    function Work_Group_Size (Source : Kernel; Device : Platforms.Device)
                                  return Size is
       function Getter is
@@ -174,6 +291,44 @@ package body CL.Kernels is
    begin
       return Getter (Source, Device, Enumerations.Compile_Work_Group_Size);
    end Compile_Work_Group_Size;
+
+   function Preferred_Work_Group_Size_Multiple
+     (Source : Kernel; Device : Platforms.Device) return Size
+   is
+      function Getter is
+        new Helpers.Get_Parameter2
+          (Return_T    => Size,
+           Parameter_T => Enumerations.Kernel_Work_Group_Info,
+           C_Getter    => API.Get_Kernel_Work_Group_Info);
+   begin
+      return Getter
+        (Source, Device, Enumerations.Preferred_Work_Group_Size_Multiple);
+   end Preferred_Work_Group_Size_Multiple;
+
+   function Private_Memory_Size
+     (Source : Kernel; Device : Platforms.Device) return ULong
+   is
+      function Getter is
+        new Helpers.Get_Parameter2
+          (Return_T    => ULong,
+           Parameter_T => Enumerations.Kernel_Work_Group_Info,
+           C_Getter    => API.Get_Kernel_Work_Group_Info);
+   begin
+      return Getter (Source, Device, Enumerations.Private_Mem_Size);
+   end Private_Memory_Size;
+
+   function Global_Work_Size
+     (Source : Kernel; Device : Platforms.Device) return Size_List
+   is
+      function Getter is
+        new Helpers.Get_Parameters2
+          (Return_Element_T => Size,
+           Return_T         => Size_List,
+           Parameter_T      => Enumerations.Kernel_Work_Group_Info,
+           C_Getter         => API.Get_Kernel_Work_Group_Info);
+   begin
+      return Getter (Source, Device, Enumerations.Global_Work_Size);
+   end Global_Work_Size;
 
    function Local_Memory_Size (Source : Kernel; Device : Platforms.Device)
                                return ULong is

@@ -20,7 +20,7 @@ package body CL.Vector_Operations is
       Result : Vector;
    begin
       for I in Natural (Vector_Range'First) .. Natural (Vector_Range'Last) loop
-         Result (I) := Operation (Left (I), Right (I));
+         Result (I) := Operation (Left => Left (I), Right => Right (I));
       end loop;
       return Result;
    end Element_Wise;
@@ -29,7 +29,7 @@ package body CL.Vector_Operations is
       Result : Vector;
    begin
       for I in Natural (Vector_Range'First) .. Natural (Vector_Range'Last) loop
-         Result (I) := Operation (Left (I), Right);
+         Result (I) := Operation (Left => Left (I), Right => Right);
       end loop;
       return Result;
    end Apply_Scalar;

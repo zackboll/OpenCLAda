@@ -37,25 +37,67 @@ package body CL.Memory.Images is
       Num_Values : aliased UInt;
       Error      : Enumerations.Error_Code;
    begin
-      Error := API.Get_Supported_Image_Formats (CL_Object (Context).Location,
-                                                To_Bitfield (Flags), Img_Type,
-                                                0, System.Null_Address,
-                                                Num_Values'Unchecked_Access);
+      Error := API.Get_Supported_Image_Formats 
+        (Context     => CL_Object (Context).Location,
+         Flags       => To_Bitfield (Flags), 
+         Object_Type => Img_Type,
+         Num_Entries => 0, Value => System.Null_Address,
+         Return_Size => Num_Values'Unchecked_Access);
       Helpers.Error_Handler (Error);
       declare
          Returned_Values : Image_Format_List (1 .. Integer (Num_Values));
       begin
-         Error := API.Get_Supported_Image_Formats (CL_Object (Context).Location,
-                                                   To_Bitfield (Flags),
-                                                   Img_Type, Num_Values,
-                                                   Returned_Values (1)'Address,
-                                                   null);
+         Error := API.Get_Supported_Image_Formats 
+           (Context     => CL_Object (Context).Location,
+            Flags       => To_Bitfield (Flags),
+            Object_Type => Img_Type, 
+            Num_Entries => Num_Values,
+            Value       => Returned_Values (1)'Address,
+            Return_Size => null);
          Helpers.Error_Handler (Error);
          return Returned_Values;
       end;
    end Supported_Image_Formats;
 
    package body Constructors is
+
+      function Create
+        (Context         : Contexts.Context'Class;
+         Mode            : Access_Kind;
+         Format          : Image_Format;
+         Descriptor      : Image_Descriptor;
+         Host_Pointer    : System.Address := System.Null_Address;
+         Use_Host_Memory : Boolean := False;
+         Host_Access     : Host_Access_Kind := Host_Read_Write)
+         return Generic_Image
+      is
+         use type System.Address;
+         Flags : constant Memory_Flags :=
+           Create_Flags
+             (Mode           => Mode,
+              Use_Host_Ptr   => Host_Pointer /= System.Null_Address and
+                                Use_Host_Memory,
+              Copy_Host_Ptr  => Host_Pointer /= System.Null_Address and
+                                not Use_Host_Memory,
+              Alloc_Host_Ptr => Host_Pointer = System.Null_Address and
+                                Use_Host_Memory,
+              Host_Access    => Host_Access);
+         Format_Obj : aliased Image_Format := Format;
+         Desc_Obj   : aliased Image_Descriptor := Descriptor;
+         Error      : aliased Enumerations.Error_Code;
+         Raw_Object : System.Address;
+      begin
+         Raw_Object := API.Create_Image
+           (Context  => CL_Object (Context).Location, 
+            Flags    => To_Bitfield (Flags),
+            Format   => Format_Obj'Address, 
+            Desc     => Desc_Obj'Address, 
+            Host_Ptr => Host_Pointer,
+            Error    => Error'Unchecked_Access);
+         Helpers.Error_Handler (Error);
+         return Generic_Image'
+           (Ada.Finalization.Controlled with Location => Raw_Object);
+      end Create;
 
       --  Analogous to Create_Buffer
       function Create_Image2D (Context   : Contexts.Context'Class;
@@ -74,12 +116,15 @@ package body CL.Memory.Images is
          Error      : aliased Enumerations.Error_Code;
          Format_Obj : aliased Image_Format := Format;
       begin
-         Raw_Object := API.Create_Image2D (CL_Object (Context).Location,
-                                           To_Bitfield (Flags),
-                                           Format_Obj'Unchecked_Access,
-                                           Width, Height, Row_Pitch,
-                                           System.Null_Address,
-                                           Error'Unchecked_Access);
+         Raw_Object := API.Create_Image2D 
+           (Context   => CL_Object (Context).Location,
+            Flags     => To_Bitfield (Flags),
+            Format    => Format_Obj'Unchecked_Access,
+            Width     => Width, 
+            Height    => Height, 
+            Row_Pitch => Row_Pitch,
+            Host_Ptr  => System.Null_Address,
+            Error     => Error'Unchecked_Access);
          Helpers.Error_Handler (Error);
          return Image2D'(Ada.Finalization.Controlled with Location => Raw_Object);
       end Create_Image2D;
@@ -103,12 +148,17 @@ package body CL.Memory.Images is
          Error      : aliased Enumerations.Error_Code;
          Format_Obj : aliased Image_Format := Format;
       begin
-         Raw_Object := API.Create_Image3D (CL_Object (Context).Location,
-                                           To_Bitfield (Flags),
-                                           Format_Obj'Unchecked_Access,
-                                           Width, Height, Depth, Row_Pitch,
-                                           Slice_Pitch, System.Null_Address,
-                                           Error'Unchecked_Access);
+         Raw_Object := API.Create_Image3D 
+           (Context => CL_Object (Context).Location,
+            Flags       => To_Bitfield (Flags),
+            Format      => Format_Obj'Unchecked_Access,
+            Width       => Width, 
+            Height      => Height, 
+            Depth       => Depth, 
+            Row_Pitch   => Row_Pitch,
+            Slice_Pitch => Slice_Pitch,
+            Host_Ptr    => System.Null_Address,
+            Error       => Error'Unchecked_Access);
          Helpers.Error_Handler (Error);
          return Image3D'(Ada.Finalization.Controlled with Location => Raw_Object);
       end Create_Image3D;
@@ -145,11 +195,17 @@ package body CL.Memory.Images is
 
          --  check if Source has required size.
          --  do not check for other errors as this will be done by OpenCL.
-         if (Row_Pitch = 0) then
-            if (Source'Length < Width * Height) then
+         if Source'Length = 0 then
+            raise Invalid_Source_Size;
+         elsif Row_Pitch = 0 then
+            if CL.Size (Source'Size / System.Storage_Unit) <
+              Width * Height
+            then
                raise Invalid_Source_Size;
             end if;
-         elsif (Source'Size / System.Storage_Unit < Row_Pitch * Height) then
+         elsif CL.Size (Source'Size / System.Storage_Unit) <
+           Row_Pitch * Height
+         then
             raise Invalid_Source_Size;
          end if;
 
@@ -160,7 +216,7 @@ package body CL.Memory.Images is
                                   Width     => Width,
                                   Height    => Height,
                                   Row_Pitch => Row_Pitch,
-                                  Host_Ptr  => Source (1)'Address,
+                                  Host_Ptr  => Source (Source'First)'Address,
                                   Error     => Error'Unchecked_Access);
          Helpers.Error_Handler (Error);
          return Image2D'(Ada.Finalization.Controlled with Location => Raw_Object);
@@ -198,15 +254,23 @@ package body CL.Memory.Images is
                                    Alloc_Host_Ptr => Use_Host_Memory);
          end if;
 
-         if Slice_Pitch = 0 then
+         if Source'Length = 0 then
+            raise Invalid_Source_Size;
+         elsif Slice_Pitch = 0 then
             if Row_Pitch = 0 then
-               if Source'Length < Width * Height * Depth then
+               if CL.Size (Source'Size / System.Storage_Unit) <
+                 Width * Height * Depth
+               then
                   raise Invalid_Source_Size;
                end if;
-            elsif Source'Size < Row_Pitch * Height * Depth then
+            elsif CL.Size (Source'Size / System.Storage_Unit) <
+              Row_Pitch * Height * Depth
+            then
                raise Invalid_Source_Size;
             end if;
-         elsif Source'Size < Slice_Pitch * Depth then
+         elsif CL.Size (Source'Size / System.Storage_Unit) <
+           Slice_Pitch * Depth
+         then
             raise Invalid_Source_Size;
          end if;
 
@@ -218,9 +282,10 @@ package body CL.Memory.Images is
                                            Depth       => Depth,
                                            Row_Pitch   => Row_Pitch,
                                            Slice_Pitch => Slice_Pitch,
-                                           Host_Ptr    => Source (1)'Address,
+                                           Host_Ptr    =>
+                                             Source (Source'First)'Address,
                                            Error       => Error'Unchecked_Access);
-         Helpers.Error_Handler (Error);
+         Helpers.Error_Handler (Error => Error);
          return Image3D'(Ada.Finalization.Controlled with Location => Raw_Object);
       end Create_Image3D_From_Source;
    end Constructors;
@@ -258,6 +323,38 @@ package body CL.Memory.Images is
    begin
       return Image_Size_Info (Source, Enumerations.Height);
    end Height;
+
+   function Array_Size (Source : Image) return CL.Size is
+   begin
+      return Image_Size_Info (Source, Enumerations.Array_Size);
+   end Array_Size;
+
+   function Mip_Levels (Source : Image) return UInt is
+      function Getter is
+        new Helpers.Get_Parameter (Return_T    => UInt,
+                                   Parameter_T => Enumerations.Image_Info,
+                                   C_Getter    => API.Get_Image_Info);
+   begin
+      return Getter (Source, Enumerations.Num_Mip_Levels);
+   end Mip_Levels;
+
+   function Samples (Source : Image) return UInt is
+      function Getter is
+        new Helpers.Get_Parameter (Return_T    => UInt,
+                                   Parameter_T => Enumerations.Image_Info,
+                                   C_Getter    => API.Get_Image_Info);
+   begin
+      return Getter (Source, Enumerations.Num_Samples);
+   end Samples;
+
+   function Associated_Buffer_Raw (Source : Image) return System.Address is
+      function Getter is
+        new Helpers.Get_Parameter (Return_T    => System.Address,
+                                   Parameter_T => Enumerations.Image_Info,
+                                   C_Getter    => API.Get_Image_Info);
+   begin
+      return Getter (Source, Enumerations.Buffer);
+   end Associated_Buffer_Raw;
 
    function Depth (Source : Image3D) return CL.Size is
    begin

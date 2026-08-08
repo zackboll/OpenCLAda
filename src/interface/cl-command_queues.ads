@@ -23,8 +23,8 @@ package CL.Command_Queues is
 
    type Map_Flags is
       record
-         Read  : Boolean;
-         Write : Boolean;
+         Read  : Boolean := False;
+         Write : Boolean := False;
       end record;
 
    package Constructors is
@@ -56,8 +56,4 @@ private
          Read  at 0 range 0 .. 0;
          Write at 0 range 1 .. 1;
       end record;
-   pragma Warnings (Off);
-   for Map_Flags'Size use Bitfield'Size;
-   pragma Warnings (On);
-   pragma Convention(C, Map_Flags);
 end CL.Command_Queues;

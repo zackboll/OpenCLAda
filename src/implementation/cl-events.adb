@@ -14,11 +14,53 @@
 -- OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 --------------------------------------------------------------------------------
 
+with Ada.Unchecked_Conversion;
+
 with CL.API;
 with CL.Enumerations;
 with CL.Helpers;
 
 package body CL.Events is
+
+   function Callback_To_Address is
+     new Ada.Unchecked_Conversion (Event_Callback, System.Address);
+   function Address_To_Callback is
+     new Ada.Unchecked_Conversion (System.Address, Event_Callback);
+
+   procedure Callback_Dispatcher
+     (Raw_Event : System.Address;
+      Event_Status : Int;
+      User_Data : System.Address);
+   pragma Convention (C, Callback_Dispatcher);
+
+   procedure Callback_Dispatcher
+     (Raw_Event : System.Address;
+      Event_Status : Int;
+      User_Data : System.Address)
+   is
+      Callback : constant Event_Callback := Address_To_Callback (User_Data);
+   begin
+      if Callback /= null then
+         Helpers.Error_Handler (API.Retain_Event (Raw_Event));
+         Callback
+           (Subject => Event'(Ada.Finalization.Controlled with Location => Raw_Event),
+            Status => Event_Status);
+      end if;
+   end Callback_Dispatcher;
+
+   package body Constructors is
+      function Create_User_Event
+        (Context : Contexts.Context'Class) return Event
+      is
+         Error     : aliased Enumerations.Error_Code;
+         Raw_Event : System.Address;
+      begin
+         Raw_Event := API.Create_User_Event
+           (Context => CL_Object (Context).Location, Error => Error'Unchecked_Access);
+         Helpers.Error_Handler (Error);
+         return Event'(Ada.Finalization.Controlled with Location => Raw_Event);
+      end Create_User_Event;
+   end Constructors;
 
    procedure Adjust (Object : in out Event) is
       use type System.Address;
@@ -45,11 +87,20 @@ package body CL.Events is
    procedure Wait_For (Subjects : Event_List) is
       Raw_List : Address_List (Subjects'Range);
    begin
+      if Subjects'Length = 0 then
+         return;
+      end if;
+
       for Index in Subjects'Range loop
+         if Subjects (Index) = null then
+            raise CL.Invalid_Event;
+         end if;
          Raw_List (Index) := Subjects (Index).Location;
       end loop;
-      Helpers.Error_Handler (API.Wait_For_Events (Subjects'Length,
-                                                  Raw_List (1)'Address));
+      Helpers.Error_Handler
+        (API.Wait_For_Events
+           (Num_Events => UInt (Subjects'Length), 
+            Event_List => Raw_List (Raw_List'First)'Address));
    end Wait_For;
 
    function Command_Queue (Source : Event) return Command_Queues.Queue is
@@ -89,6 +140,57 @@ package body CL.Events is
    begin
       return Getter (Source, Enumerations.Command_Execution_Status);
    end Status;
+
+   function Status_Code (Source : Event) return Int is
+      function Getter is
+        new Helpers.Get_Parameter (Return_T    => Int,
+                                   Parameter_T => Enumerations.Event_Info,
+                                   C_Getter    => API.Get_Event_Info);
+   begin
+      return Getter (Source, Enumerations.Command_Execution_Status);
+   end Status_Code;
+
+   function Context (Source : Event) return Contexts.Context is
+      function Getter is
+        new Helpers.Get_Parameter (Return_T    => System.Address,
+                                   Parameter_T => Enumerations.Event_Info,
+                                   C_Getter    => API.Get_Event_Info);
+      function New_Context_Reference is
+        new Helpers.New_Reference (Contexts.Context);
+   begin
+      return New_Context_Reference (Getter (Source, Enumerations.Context));
+   end Context;
+
+   procedure Set_User_Event_Complete (Source : Event) is
+   begin
+      Helpers.Error_Handler
+        (API.Set_User_Event_Status (Target           => Source.Location, 
+                                    Execution_Status => 0));
+   end Set_User_Event_Complete;
+
+   procedure Set_User_Event_Error (Source : Event; Error_Status : Int) is
+   begin
+      Helpers.Error_Handler
+        (Error => API.Set_User_Event_Status (Target           => Source.Location, 
+                                             Execution_Status => Error_Status));
+   end Set_User_Event_Error;
+
+   procedure Set_Callback
+     (Source   : Event;
+      Trigger  : Execution_Status;
+      Callback : Event_Callback)
+   is
+   begin
+      if Callback = null then
+         raise Constraint_Error with "event callback must not be null";
+      end if;
+      Helpers.Error_Handler
+        (Error => API.Set_Event_Callback
+           (Target        => Source.Location, 
+            Callback_Type => Int (Execution_Status'Enum_Rep (Trigger)),
+            Callback      => Callback_Dispatcher'Access, 
+            User_Data     => Callback_To_Address (Callback)));
+   end Set_Callback;
 
    function Profiling_Info_ULong is
      new Helpers.Get_Parameter (Return_T    => ULong,

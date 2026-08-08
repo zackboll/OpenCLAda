@@ -14,13 +14,43 @@
 -- OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 --------------------------------------------------------------------------------
 
+with Interfaces.C;
+
 package CL.Platforms is
-   
+
    type Platform is new CL_Object with null record;
-   type Device is new CL_Object with null record;
+   type Device is new CL_Object with private;
 
    type Platform_List is array (Positive range <>) of Platform;
    type Device_List is array (Positive range <>) of Device;
+
+   type Partition_Property is new Interfaces.C.ptrdiff_t;
+   type Partition_Property_List is
+     array (Positive range <>) of aliased Partition_Property;
+
+   type Affinity_Domain is
+     (NUMA, L4_Cache, L3_Cache, L2_Cache, L1_Cache, Next_Partitionable);
+   type Affinity_Domain_Set is array (Affinity_Domain) of Boolean
+     with Pack, Convention => C;
+
+   package Raw_Interop is
+      function Wrap_Device
+        (Location : System.Address; Retain : Boolean := False) return Device;
+   end Raw_Interop;
+
+   package Device_Constructors is
+      function Partition_Equally
+        (Source : Device; Compute_Units_Per_Sub_Device : UInt)
+         return Device_List;
+
+      function Partition_By_Counts
+        (Source : Device; Compute_Unit_Counts : Size_List)
+         return Device_List;
+
+      function Partition_By_Affinity_Domain
+        (Source : Device; Domain : Affinity_Domain)
+         return Device_List;
+   end Device_Constructors;
 
    -----------------------------------------------------------------------------
    --  Types for describing Device features
@@ -30,14 +60,21 @@ package CL.Platforms is
 
    type Local_Memory_Kind is (Local, Global);
 
+   type Device_Kind_Reserved_Bits is array (1 .. 60) of Boolean
+     with Pack, Size => 60;
+
    type Device_Kind is
       record
          Default     : Boolean := False;
          CPU         : Boolean := False;
          GPU         : Boolean := False;
          Accelerator : Boolean := False;
-      end record;
+         Reserved    : Device_Kind_Reserved_Bits := [others => False];
+      end record with Size => 64;
    Device_Kind_All : constant Device_Kind;
+
+   type Floating_Point_Config_Reserved_Bits is array (1 .. 56) of Boolean
+     with Pack, Size => 56;
 
    type Floating_Point_Config is
       record
@@ -46,9 +83,12 @@ package CL.Platforms is
          Round_To_Nearest : Boolean := False;
          Round_To_Zero    : Boolean := False;
          Round_To_Inf     : Boolean := False;
-         FMA              : Boolean := False;
-         Soft_Float       : Boolean := False;
-      end record;
+         FMA                           : Boolean := False;
+         Soft_Float                    : Boolean := False;
+         Correctly_Rounded_Divide_Sqrt : Boolean := False;
+         Reserved                      : Floating_Point_Config_Reserved_Bits :=
+           [others => False];
+      end record with Size => 64;
 
    type Capability_Vector is
       record
@@ -56,11 +96,16 @@ package CL.Platforms is
          Native_Kernel : Boolean := False;
       end record;
 
+   type CQ_Property_Reserved_Bits is array (1 .. 62) of Boolean
+     with Pack, Size => 62;
+
    type CQ_Property_Vector is
       record
          Out_Of_Order_Exec_Mode_Enable : Boolean := False;
          Profiling_Enable              : Boolean := False;
-      end record;
+         Reserved                      : CQ_Property_Reserved_Bits :=
+           [others => False];
+      end record with Size => 64;
 
    -----------------------------------------------------------------------------
    --  Platform functions
@@ -73,6 +118,9 @@ package CL.Platforms is
    function Name       (Source : Platform) return String;
    function Vendor     (Source : Platform) return String;
    function Extensions (Source : Platform) return String;
+
+   function Extension_Function_Address
+     (Source : Platform; Function_Name : String) return System.Address;
 
    function Devices (Source : Platform; Types : Device_Kind)
                      return Device_List;
@@ -107,6 +155,8 @@ package CL.Platforms is
    function Native_Vector_Width_Float (Source : Device) return UInt;
    function Native_Vector_Width_Double (Source : Device) return UInt;
    function Native_Vector_Width_Half (Source : Device) return UInt;
+   function Partition_Max_Sub_Devices (Source : Device) return UInt;
+   function Device_Reference_Count (Source : Device) return UInt;
 
    function Max_Mem_Alloc_Size (Source : Device) return ULong;
    function Global_Mem_Cache_Size (Source : Device) return ULong;
@@ -122,6 +172,9 @@ package CL.Platforms is
    function Image3D_Max_Depth (Source : Device) return Size;
    function Max_Parameter_Size (Source : Device) return Size;
    function Profiling_Timer_Resolution (Source : Device) return Size;
+   function Image_Max_Buffer_Size (Source : Device) return Size;
+   function Image_Max_Array_Size (Source : Device) return Size;
+   function Printf_Buffer_Size (Source : Device) return Size;
 
    function Image_Support (Source : Device) return Boolean;
    function Error_Correction_Support (Source : Device) return Boolean;
@@ -129,6 +182,8 @@ package CL.Platforms is
    function Available (Source : Device) return Boolean;
    function Compiler_Available (Source : Device) return Boolean;
    function Host_Unified_Memory (Source : Device) return Boolean;
+   function Linker_Available (Source : Device) return Boolean;
+   function Preferred_Interop_User_Sync (Source : Device) return Boolean;
 
    function Name (Source : Device) return String;
    function Vendor (Source : Device) return String;
@@ -137,9 +192,12 @@ package CL.Platforms is
    function Version (Source : Device) return String;
    function Extensions (Source : Device) return String;
    function OpenCL_C_Version (Source : Device) return String;
+   function Built_In_Kernels (Source : Device) return String;
 
    function Max_Work_Item_Sizes (Source : Device) return Size_List;
    function Single_Floating_Point_Config (Source : Device)
+                                          return Floating_Point_Config;
+   function Double_Floating_Point_Config (Source : Device)
                                           return Floating_Point_Config;
    function Memory_Cache_Type (Source : Device) return Memory_Cache_Kind;
    function Local_Memory_Type (Source : Device) return Local_Memory_Kind;
@@ -149,7 +207,21 @@ package CL.Platforms is
    function Command_Queue_Properties (Source : Device)
      return CQ_Property_Vector;
    function Associated_Platform (Source : Device) return Platform'Class;
+   function Parent (Source : Device) return Device;
+   function Partition_Properties
+     (Source : Device) return Partition_Property_List;
+   function Partition_Type
+     (Source : Device) return Partition_Property_List;
+   function Partition_Affinity_Domains
+     (Source : Device) return Affinity_Domain_Set;
+
+   overriding procedure Adjust (Object : in out Device);
+   overriding procedure Finalize (Object : in out Device);
 private
+   type Device is new CL_Object with record
+      Owns_Reference : Boolean := False;
+   end record;
+
    for Memory_Cache_Kind use (None             => 0,
                               Read_Only_Cache  => 1,
                               Read_Write_Cache => 2);
@@ -163,10 +235,11 @@ private
 
    for Device_Kind use
       record
-         Default     at 0 range 0 .. 0;
-         CPU         at 0 range 1 .. 1;
-         GPU         at 0 range 2 .. 2;
-         Accelerator at 0 range 3 .. 3;
+          Default     at 0 range 0 .. 0;
+          CPU         at 0 range 1 .. 1;
+          GPU         at 0 range 2 .. 2;
+          Accelerator at 0 range 3 .. 3;
+          Reserved    at 0 range 4 .. 63;
       end record;
    pragma Convention (C_Pass_By_Copy, Device_Kind);
 
@@ -177,8 +250,10 @@ private
          Round_To_Nearest at 0 range 2 .. 2;
          Round_To_Zero    at 0 range 3 .. 3;
          Round_To_Inf     at 0 range 4 .. 4;
-         FMA              at 0 range 5 .. 5;
-         Soft_Float       at 0 range 6 .. 6;
+         FMA                           at 0 range 5 .. 5;
+         Soft_Float                    at 0 range 6 .. 6;
+         Correctly_Rounded_Divide_Sqrt at 0 range 7 .. 7;
+         Reserved                      at 0 range 8 .. 63;
       end record;
    pragma Convention(C_Pass_By_Copy, Floating_Point_Config);
 
@@ -191,20 +266,16 @@ private
 
    for CQ_Property_Vector use
       record
-         Out_Of_Order_Exec_Mode_Enable at 0 range 0 .. 0;
-         Profiling_Enable              at 0 range 1 .. 1;
+          Out_Of_Order_Exec_Mode_Enable at 0 range 0 .. 0;
+          Profiling_Enable              at 0 range 1 .. 1;
+          Reserved                      at 0 range 2 .. 63;
       end record;
    pragma Convention(C_Pass_By_Copy, CQ_Property_Vector);
 
-   pragma Warnings (Off);
-   for Device_Kind'Size           use Bitfield'Size;
-   for Floating_Point_Config'Size use Bitfield'Size;
-   for Capability_Vector'Size     use Bitfield'Size;
-   for CQ_Property_Vector'Size    use Bitfield'Size;
-   pragma Warnings (On);
-
-   Device_Kind_All : constant Device_Kind := Device_Kind'(Default => True,
-                                                          CPU => True,
-                                                          GPU => True,
-                                                          Accelerator => True);
+   Device_Kind_All : constant Device_Kind :=
+     (Default     => True,
+      CPU         => True,
+      GPU         => True,
+      Accelerator => True,
+      Reserved    => [others => False]);
 end CL.Platforms;

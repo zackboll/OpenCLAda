@@ -1,0 +1,16 @@
+with AUnit.Test_Cases;
+
+package CL_Test.Legacy_Drivers is
+
+   type Test_Case is new AUnit.Test_Cases.Test_Case with private;
+
+   overriding function Name
+     (Test : Test_Case) return AUnit.Message_String;
+
+   overriding procedure Register_Tests (Test : in out Test_Case);
+
+private
+
+   type Test_Case is new AUnit.Test_Cases.Test_Case with null record;
+
+end CL_Test.Legacy_Drivers;

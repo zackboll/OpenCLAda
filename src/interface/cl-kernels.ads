@@ -24,6 +24,20 @@ package CL.Kernels is
 
    type Kernel_List is array (Positive range <>) of Kernel;
 
+   type Argument_Address_Qualifier is
+     (Global_Address, Local_Address, Constant_Address, Private_Address);
+   type Argument_Access_Qualifier is
+     (Read_Only_Access, Write_Only_Access, Read_Write_Access, No_Access);
+
+   type Argument_Type_Qualifier_Reserved is mod 2 ** 61;
+
+   type Argument_Type_Qualifier is record
+      Is_Constant : Boolean := False;
+      Is_Restrict : Boolean := False;
+      Is_Volatile : Boolean := False;
+      Reserved    : Argument_Type_Qualifier_Reserved := 0;
+   end record;
+
    package Constructors is
 
       function Create (Source : Programs.Program'Class; Name : String) return Kernel;
@@ -56,6 +70,18 @@ package CL.Kernels is
    function Context (Source : Kernel) return Contexts.Context;
 
    function Program (Source : Kernel) return Programs.Program;
+   function Attributes (Source : Kernel) return String;
+
+   function Argument_Address
+     (Source : Kernel; Index : UInt) return Argument_Address_Qualifier;
+   function Argument_Access
+     (Source : Kernel; Index : UInt) return Argument_Access_Qualifier;
+   function Argument_Type_Name
+     (Source : Kernel; Index : UInt) return String;
+   function Argument_Name
+     (Source : Kernel; Index : UInt) return String;
+   function Argument_Type_Qualifiers
+     (Source : Kernel; Index : UInt) return Argument_Type_Qualifier;
 
    function Work_Group_Size (Source : Kernel; Device : Platforms.Device)
                              return Size;
@@ -65,5 +91,34 @@ package CL.Kernels is
 
    function Local_Memory_Size (Source : Kernel; Device : Platforms.Device)
                                return ULong;
+   function Preferred_Work_Group_Size_Multiple
+     (Source : Kernel; Device : Platforms.Device) return Size;
+   function Private_Memory_Size
+     (Source : Kernel; Device : Platforms.Device) return ULong;
+   function Global_Work_Size
+     (Source : Kernel; Device : Platforms.Device) return Size_List;
 
+private
+   for Argument_Address_Qualifier use
+     (Global_Address   => 16#119B#,
+      Local_Address    => 16#119C#,
+      Constant_Address => 16#119D#,
+      Private_Address  => 16#119E#);
+   for Argument_Address_Qualifier'Size use UInt'Size;
+
+   for Argument_Access_Qualifier use
+     (Read_Only_Access  => 16#11A0#,
+      Write_Only_Access => 16#11A1#,
+      Read_Write_Access => 16#11A2#,
+      No_Access         => 16#11A3#);
+   for Argument_Access_Qualifier'Size use UInt'Size;
+
+   for Argument_Type_Qualifier use record
+      Is_Constant at 0 range 0 .. 0;
+      Is_Restrict at 0 range 1 .. 1;
+      Is_Volatile at 0 range 2 .. 2;
+      Reserved    at 0 range 3 .. 63;
+   end record;
+   for Argument_Type_Qualifier'Size use Bitfield'Size;
+   pragma Convention (C_Pass_By_Copy, Argument_Type_Qualifier);
 end CL.Kernels;

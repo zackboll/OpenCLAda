@@ -22,35 +22,72 @@ private package CL.Enumerations is
    --  Literals are prefixed E_* to avoid confusion with the corresponding
    --  exceptions.
    -----------------------------------------------------------------------------
-   type Error_Code is (E_Invalid_Global_Work_Size, E_Invalid_Mip_Level,
-                       E_Invalid_Buffer_Size, E_Invalid_GL_Object,
-                       E_Invalid_Operation, E_Invalid_Event,
-                       E_Invalid_Event_Wait_List, E_Invalid_Global_Offset,
-                       E_Invalid_Work_Item_Size, E_Invalid_Work_Group_Size,
-                       E_Invalid_Work_Dimension, E_Invalid_Kernel_Args,
-                       E_Invalid_Arg_Size, E_Invalid_Arg_Value,
-                       E_Invalid_Arg_Index, E_Invalid_Kernel,
-                       E_Invalid_Kernel_Definition, E_Invalid_Kernel_Name,
-                       E_Invalid_Program_Executable, E_Invalid_Program,
-                       E_Invalid_Build_Options, E_Invalid_Binary,
-                       E_Invalid_Sampler, E_Invalid_Image_Size,
-                       E_Invalid_Image_Format_Descriptor, E_Invalid_Mem_Object,
-                       E_Invalid_Host_Ptr, E_Invalid_Command_Queue,
-                       E_Invalid_Queue_Properties, E_Invalid_Context,
-                       E_Invalid_Device, E_Invalid_Platform,
-                       E_Invalid_Device_Type, E_Invalid_Value,
-                       E_Kernel_Arg_Info_Not_Available,
-                       E_Device_Partition_Failed, E_Link_Program_Failure,
-                       E_Linker_Not_Available, E_Compile_Program_Failure,
-                       E_Exec_Status_Error_For_Events_In_Wait_List,
-                       E_Misaligned_Sub_Buffer_Offset,E_Map_Failure,
-                       E_Build_Program_Failure, E_Image_Format_Not_Supported,
-                       E_Image_Format_Mismatch, E_Mem_Copy_Overlap,
-                       E_Profiling_Info_Not_Available, E_Out_Of_Host_Memory,
-                       E_Out_Of_Resources, E_Mem_Object_Allocation_Failure,
-                       E_Compiler_Not_Available, E_Device_Not_Available,
-                       E_Device_Not_Found, E_Success);
-   for Error_Code use (E_Invalid_Global_Work_Size        => -63,
+   type Error_Code is
+     (E_Invalid_Device_Partition_Count,
+      E_Invalid_Linker_Options,
+      E_Invalid_Compiler_Options,
+      E_Invalid_Image_Descriptor,
+      E_Invalid_Property,
+      E_Invalid_Global_Work_Size,
+      E_Invalid_Mip_Level,
+      E_Invalid_Buffer_Size,
+      E_Invalid_GL_Object,
+      E_Invalid_Operation,
+      E_Invalid_Event,
+      E_Invalid_Event_Wait_List,
+      E_Invalid_Global_Offset,
+      E_Invalid_Work_Item_Size,
+      E_Invalid_Work_Group_Size,
+      E_Invalid_Work_Dimension,
+      E_Invalid_Kernel_Args,
+      E_Invalid_Arg_Size,
+      E_Invalid_Arg_Value,
+      E_Invalid_Arg_Index,
+      E_Invalid_Kernel,
+      E_Invalid_Kernel_Definition,
+      E_Invalid_Kernel_Name,
+      E_Invalid_Program_Executable,
+      E_Invalid_Program,
+      E_Invalid_Build_Options,
+      E_Invalid_Binary,
+      E_Invalid_Sampler,
+      E_Invalid_Image_Size,
+      E_Invalid_Image_Format_Descriptor,
+      E_Invalid_Mem_Object,
+      E_Invalid_Host_Ptr,
+      E_Invalid_Command_Queue,
+      E_Invalid_Queue_Properties,
+      E_Invalid_Context,
+      E_Invalid_Device,
+      E_Invalid_Platform,
+      E_Invalid_Device_Type,
+      E_Invalid_Value,
+      E_Kernel_Arg_Info_Not_Available,
+      E_Device_Partition_Failed,
+      E_Link_Program_Failure,
+      E_Linker_Not_Available,
+      E_Compile_Program_Failure,
+      E_Exec_Status_Error_For_Events_In_Wait_List,
+      E_Misaligned_Sub_Buffer_Offset,
+      E_Map_Failure,
+      E_Build_Program_Failure,
+      E_Image_Format_Not_Supported,
+      E_Image_Format_Mismatch,
+      E_Mem_Copy_Overlap,
+      E_Profiling_Info_Not_Available,
+      E_Out_Of_Host_Memory,
+      E_Out_Of_Resources,
+      E_Mem_Object_Allocation_Failure,
+      E_Compiler_Not_Available,
+      E_Device_Not_Available,
+      E_Device_Not_Found,
+      E_Success);
+   for Error_Code use (E_Invalid_Device_Partition_Count  => -68,
+                       E_Invalid_Linker_Options          => -67,
+                       E_Invalid_Compiler_Options        => -66,
+                       E_Invalid_Image_Descriptor        => -65,
+                       E_Invalid_Property                => -64,
+                       E_Invalid_Global_Work_Size        => -63,
                        E_Invalid_Mip_Level               => -62,
                        E_Invalid_Buffer_Size             => -61,
                        E_Invalid_GL_Object               => -60,
@@ -118,34 +155,80 @@ private package CL.Enumerations is
                           Extensions => 16#0904#);
    for Platform_Info'Size use UInt'Size;
 
-   type Device_Info is (Dev_Type, Vendor_ID, Max_Compute_Units,
-                        Max_Work_Item_Dimensions, Max_Work_Group_Size,
-                        Max_Work_Item_Sizes, Preferred_Vector_Width_Char,
-                        Preferred_Vector_Width_Short,
-                        Preferred_Vector_Width_Int,
-                        Preferred_Vector_Width_Long,
-                        Preferred_Vector_Width_Float,
-                        Preferred_Vector_Width_Double, Max_Clock_Frequency,
-                        Address_Bits, Max_Read_Image_Args, Max_Write_Image_Args,
-                        Max_Mem_Alloc_Size, Image2D_Max_Width,
-                        Image2D_Max_Height, Image3D_Max_Width,
-                        Image3D_Max_Height, Image3D_Max_Depth, Image_Support,
-                        Max_Parameter_Size, Max_Samplers, Mem_Base_Addr_Align,
-                        Min_Data_Type_Align_Size, Single_FP_Config,
-                        Global_Mem_Cache_Type, Global_Mem_Cacheline_Size,
-                        Global_Mem_Cache_Size, Global_Mem_Size,
-                        Max_Constant_Buffer_Size, Max_Constant_Args,
-                        Local_Mem_Type, Local_Mem_Size,
-                        Error_Correction_Support, Profiling_Timer_Resolution,
-                        Endian_Little, Available, Compiler_Available,
-                        Execution_Capabilities, Queue_Properties,
-                        Name, Vendor, Driver_Version, Profile, Version,
-                        Extensions, Platform, Preferred_Vector_Width_Half,
-                        Host_Unified_Memory, Native_Vector_Width_Char,
-                        Native_Vector_Width_Short, Native_Vector_Width_Int,
-                        Native_Vector_Width_Long, Native_Vector_Width_Float,
-                        Native_Vector_Width_Double, Native_Vector_Width_Half,
-                        OpenCL_C_Version);
+   type Device_Info is
+     (Dev_Type,
+      Vendor_ID,
+      Max_Compute_Units,
+      Max_Work_Item_Dimensions,
+      Max_Work_Group_Size,
+      Max_Work_Item_Sizes,
+      Preferred_Vector_Width_Char,
+      Preferred_Vector_Width_Short,
+      Preferred_Vector_Width_Int,
+      Preferred_Vector_Width_Long,
+      Preferred_Vector_Width_Float,
+      Preferred_Vector_Width_Double,
+      Max_Clock_Frequency,
+      Address_Bits,
+      Max_Read_Image_Args,
+      Max_Write_Image_Args,
+      Max_Mem_Alloc_Size,
+      Image2D_Max_Width,
+      Image2D_Max_Height,
+      Image3D_Max_Width,
+      Image3D_Max_Height,
+      Image3D_Max_Depth,
+      Image_Support,
+      Max_Parameter_Size,
+      Max_Samplers,
+      Mem_Base_Addr_Align,
+      Min_Data_Type_Align_Size,
+      Single_FP_Config,
+      Global_Mem_Cache_Type,
+      Global_Mem_Cacheline_Size,
+      Global_Mem_Cache_Size,
+      Global_Mem_Size,
+      Max_Constant_Buffer_Size,
+      Max_Constant_Args,
+      Local_Mem_Type,
+      Local_Mem_Size,
+      Error_Correction_Support,
+      Profiling_Timer_Resolution,
+      Endian_Little,
+      Available,
+      Compiler_Available,
+      Execution_Capabilities,
+      Queue_Properties,
+      Name,
+      Vendor,
+      Driver_Version,
+      Profile,
+      Version,
+      Extensions,
+      Platform,
+      Double_FP_Config,
+      Preferred_Vector_Width_Half,
+      Host_Unified_Memory,
+      Native_Vector_Width_Char,
+      Native_Vector_Width_Short,
+      Native_Vector_Width_Int,
+      Native_Vector_Width_Long,
+      Native_Vector_Width_Float,
+      Native_Vector_Width_Double,
+      Native_Vector_Width_Half,
+      OpenCL_C_Version,
+      Linker_Available,
+      Built_In_Kernels,
+      Image_Max_Buffer_Size,
+      Image_Max_Array_Size,
+      Parent_Device,
+      Partition_Max_Sub_Devices,
+      Partition_Properties,
+      Partition_Affinity_Domain,
+      Partition_Type,
+      Device_Reference_Count,
+      Preferred_Interop_User_Sync,
+      Printf_Buffer_Size);
    for Device_Info use (Dev_Type                       => 16#1000#,
                         Vendor_ID                      => 16#1001#,
                         Max_Compute_Units              => 16#1002#,
@@ -195,9 +278,9 @@ private package CL.Enumerations is
                         Profile                        => 16#102E#,
                         Version                        => 16#102F#,
                         Extensions                     => 16#1030#,
-                        Platform                       => 16#1031#,
-                        --  0x1032 and 0x1033 are reserved but not yet used
-                        Preferred_Vector_Width_Half    => 16#1034#,
+                         Platform                       => 16#1031#,
+                         Double_FP_Config               => 16#1032#,
+                         Preferred_Vector_Width_Half    => 16#1034#,
                         Host_Unified_Memory            => 16#1035#,
                         Native_Vector_Width_Char       => 16#1036#,
                         Native_Vector_Width_Short      => 16#1037#,
@@ -205,8 +288,20 @@ private package CL.Enumerations is
                         Native_Vector_Width_Long       => 16#1039#,
                         Native_Vector_Width_Float      => 16#103A#,
                         Native_Vector_Width_Double     => 16#103B#,
-                        Native_Vector_Width_Half       => 16#103C#,
-                        OpenCL_C_Version               => 16#103D#);
+                         Native_Vector_Width_Half       => 16#103C#,
+                         OpenCL_C_Version               => 16#103D#,
+                         Linker_Available               => 16#103E#,
+                         Built_In_Kernels               => 16#103F#,
+                         Image_Max_Buffer_Size          => 16#1040#,
+                         Image_Max_Array_Size           => 16#1041#,
+                         Parent_Device                  => 16#1042#,
+                         Partition_Max_Sub_Devices      => 16#1043#,
+                         Partition_Properties           => 16#1044#,
+                         Partition_Affinity_Domain      => 16#1045#,
+                         Partition_Type                 => 16#1046#,
+                         Device_Reference_Count         => 16#1047#,
+                         Preferred_Interop_User_Sync    => 16#1048#,
+                         Printf_Buffer_Size             => 16#1049#);
    for Device_Info'Size use UInt'Size;
 
    type Context_Info is (Reference_Count, Devices, Properties, Num_Devices,
@@ -241,26 +336,39 @@ private package CL.Enumerations is
                         D3D10_Resource           => 16#4015#);
    for Memory_Info'Size use UInt'Size;
 
-   type Memory_Object_Type is (T_Buffer, T_Image2D, T_Image3D);
-   for Memory_Object_Type use (T_Buffer  => 16#10F0#,
-                               T_Image2D => 16#10F1#,
-                               T_Image3D => 16#10F2#);
+   type Memory_Object_Type is
+     (T_Buffer, T_Image2D, T_Image3D, T_Image2D_Array, T_Image1D,
+      T_Image1D_Array, T_Image1D_Buffer);
+   for Memory_Object_Type use
+     (T_Buffer         => 16#10F0#,
+      T_Image2D        => 16#10F1#,
+      T_Image3D        => 16#10F2#,
+      T_Image2D_Array  => 16#10F3#,
+      T_Image1D        => 16#10F4#,
+      T_Image1D_Array  => 16#10F5#,
+      T_Image1D_Buffer => 16#10F6#);
    for Memory_Object_Type'Size use UInt'Size;
 
    type Buffer_Create_Type is (T_Region);
    for Buffer_Create_Type use (T_Region => 16#1220#);
    for Buffer_Create_Type'Size use UInt'Size;
 
-   type Image_Info is (Format, Element_Size, Row_Pitch, Slice_Pitch, Width,
-                       Height, Depth, D3D10_Subresource);
-   for Image_Info use (Format       => 16#1110#,
-                       Element_Size => 16#1111#,
-                       Row_Pitch    => 16#1112#,
-                       Slice_Pitch  => 16#1113#,
-                       Width        => 16#1114#,
-                       Height       => 16#1115#,
-                       Depth        => 16#1116#,
-                       D3D10_Subresource => 16#4016#);
+   type Image_Info is
+     (Format, Element_Size, Row_Pitch, Slice_Pitch, Width, Height, Depth,
+      Array_Size, Buffer, Num_Mip_Levels, Num_Samples, D3D10_Subresource);
+   for Image_Info use
+     (Format            => 16#1110#,
+      Element_Size      => 16#1111#,
+      Row_Pitch         => 16#1112#,
+      Slice_Pitch       => 16#1113#,
+      Width             => 16#1114#,
+      Height            => 16#1115#,
+      Depth             => 16#1116#,
+      Array_Size        => 16#1117#,
+      Buffer            => 16#1118#,
+      Num_Mip_Levels    => 16#1119#,
+      Num_Samples       => 16#111A#,
+      D3D10_Subresource => 16#4016#);
    for Image_Info'Size use UInt'Size;
 
    type Sampler_Info is (Reference_Count, Context, Normalized_Coords,
@@ -272,42 +380,59 @@ private package CL.Enumerations is
                          Filter_Mode       => 16#1154#);
    for Sampler_Info'Size use UInt'Size;
 
-   type Program_Info is (Reference_Count, Context, Num_Devices,
-                         Devices, Source_String, Binary_Sizes, Binaries);
-   for Program_Info use (Reference_Count => 16#1160#,
-                         Context         => 16#1161#,
-                         Num_Devices     => 16#1162#,
-                         Devices         => 16#1163#,
-                         Source_String   => 16#1164#,
-                         Binary_Sizes    => 16#1165#,
-                         Binaries        => 16#1166#);
+   type Program_Info is
+     (Reference_Count, Context, Num_Devices, Devices, Source_String,
+      Binary_Sizes, Binaries, Num_Kernels, Kernel_Names);
+   for Program_Info use
+     (Reference_Count => 16#1160#,
+      Context         => 16#1161#,
+      Num_Devices     => 16#1162#,
+      Devices         => 16#1163#,
+      Source_String   => 16#1164#,
+      Binary_Sizes    => 16#1165#,
+      Binaries        => 16#1166#,
+      Num_Kernels     => 16#1167#,
+      Kernel_Names    => 16#1168#);
    for Program_Info'Size use UInt'Size;
 
-   type Program_Build_Info is (Status, Options, Log);
-   for Program_Build_Info use (Status  => 16#1181#,
-                               Options => 16#1182#,
-                               Log     => 16#1183#);
+   type Program_Build_Info is (Status, Options, Log, Binary_Type);
+   for Program_Build_Info use (Status      => 16#1181#,
+                               Options     => 16#1182#,
+                               Log         => 16#1183#,
+                               Binary_Type => 16#1184#);
    for Program_Build_Info'Size use UInt'Size;
 
-   type Kernel_Info is (Function_Name, Num_Args, Reference_Count, Context,
-                        Program);
+   type Kernel_Info is
+     (Function_Name, Num_Args, Reference_Count, Context, Program, Attributes);
    for Kernel_Info use (Function_Name   => 16#1190#,
                         Num_Args        => 16#1191#,
                         Reference_Count => 16#1192#,
                         Context         => 16#1193#,
-                        Program         => 16#1194#);
+                        Program         => 16#1194#,
+                        Attributes      => 16#1195#);
    for Kernel_Info'Size use UInt'Size;
+
+   type Kernel_Arg_Info is
+     (Address_Qualifier, Access_Qualifier, Type_Name, Type_Qualifier, Arg_Name);
+   for Kernel_Arg_Info use
+     (Address_Qualifier => 16#1196#,
+      Access_Qualifier  => 16#1197#,
+      Type_Name         => 16#1198#,
+      Type_Qualifier    => 16#1199#,
+      Arg_Name          => 16#119A#);
+   for Kernel_Arg_Info'Size use UInt'Size;
 
    type Kernel_Work_Group_Info is (Work_Group_Size, Compile_Work_Group_Size,
                                    Local_Mem_Size,
                                    Preferred_Work_Group_Size_Multiple,
-                                   Private_Mem_Size);
+                                   Private_Mem_Size, Global_Work_Size);
    for Kernel_Work_Group_Info use (Work_Group_Size         => 16#11B0#,
                                    Compile_Work_Group_Size => 16#11B1#,
                                    Local_Mem_Size          => 16#11B2#,
                                    Preferred_Work_Group_Size_Multiple
                                                            => 16#11B3#,
-                                   Private_Mem_Size        => 16#11B4#);
+                                    Private_Mem_Size        => 16#11B4#,
+                                    Global_Work_Size        => 16#11B5#);
    for Kernel_Work_Group_Info'Size use UInt'Size;
 
    type Event_Info is (Command_Queue, Command_T, Reference_Count,

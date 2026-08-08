@@ -40,39 +40,39 @@ package body CL is
    
    function To_String (Value : Char) return String is
    begin
-      return Trim (Value'Img, Both);
+      return Trim (Source => Value'Img, Side => Both);
    end To_String;
    function To_String (Value : Short) return String is
    begin
-      return Trim (Value'Img, Both);
+      return Trim (Source => Value'Img, Side => Both);
    end To_String;
    function To_String (Value : Int) return String is
    begin
-      return Trim (Value'Img, Both);
+      return Trim (Source => Value'Img, Side => Both);
    end To_String;
    function To_String (Value : Long) return String is
    begin
-      return Trim (Value'Img, Both);
+      return Trim (Source => Value'Img, Side => Both);
    end To_String;
    function To_String (Value : UChar) return String is
    begin
-      return Trim (Value'Img, Both);
+      return Trim (Source => Value'Img, Side => Both);
    end To_String;
    function To_String (Value : UShort) return String is
    begin
-      return Trim (Value'Img, Both);
+      return Trim (Source => Value'Img, Side => Both);
    end To_String;
    function To_String (Value : UInt) return String is
    begin
-      return Trim (Value'Img, Both);
+      return Trim (Source => Value'Img, Side => Both);
    end To_String;
    function To_String (Value : ULong) return String is
    begin
-      return Trim (Value'Img, Both);
+      return Trim (Source => Value'Img, Side => Both);
    end To_String;
    function To_String (Value : CL.Float) return String is
    begin
-      return Trim (Value'Img, Both);
+      return Trim (Source => Value'Img, Side => Both);
    end To_String;
    
    function Float_Equals (Left, Right : Float) return Boolean is

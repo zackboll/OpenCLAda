@@ -29,8 +29,8 @@ package body CL.Contexts is
                                   CB           : IFC.ptrdiff_t;
                                   User_Data    : Error_Callback) is
    begin
-      User_Data (Interfaces.C.Strings.Value    (Error_Info),
-                 C_Chars.Value (Private_Info, CB));
+      User_Data (Error_Info   => Interfaces.C.Strings.Value (Error_Info),
+                 Private_Info => C_Chars.Value (Ref => Private_Info, Length => CB));
    end Callback_Dispatcher;
 
    function UInt_Info is
@@ -38,21 +38,32 @@ package body CL.Contexts is
                                 Parameter_T => Enumerations.Context_Info,
                                 C_Getter    => API.Get_Context_Info);
 
+   function Context_Properties
+     (Platform          : Platforms.Platform'Class;
+      Interop_User_Sync : Boolean) return Address_List
+   is
+     ([Value (Context_Platform_Property),
+       CL_Object (Platform).Location,
+       Value (Context_Interop_User_Sync_Property),
+       Value (Address_Equivalent (Boolean'Pos (Interop_User_Sync))),
+       System.Null_Address]);
+
    -----------------------------------------------------------------------------
    --  Implementations
    -----------------------------------------------------------------------------
 
    package body Constructors is
 
-      function Create_For_Devices (Platform : Platforms.Platform'Class;
-                                   Devices  : Platforms.Device_List;
-                                   Callback : Error_Callback := null)
-                                   return Context is
+      function Create_For_Devices
+        (Platform          : Platforms.Platform'Class;
+         Devices           : Platforms.Device_List;
+         Callback          : Error_Callback := null;
+         Interop_User_Sync : Boolean := False) return Context is
          Error       : aliased Enumerations.Error_Code;
          Ret_Context : System.Address;
-         Props       : Address_List := [Value (Platform_Identifier),
-                                        CL_Object (Platform).Location,
-                                        System.Null_Address];
+         Props       : Address_List :=
+           Context_Properties (Platform          => Platform, 
+                               Interop_User_Sync => Interop_User_Sync);
          function Raw_Device_List is
            new Helpers.Raw_List (Element_T => Platforms.Device,
                                  Element_List_T => Platforms.Device_List);
@@ -63,34 +74,34 @@ package body CL.Contexts is
                                      Target => System.Address);
       begin
          if Callback /= null then
-            Ret_Context := API.Create_Context (Props (1)'Unchecked_Access,
-                                               Devices'Length,
-                                               Raw_List (1)'Address,
-                                               Callback_Dispatcher'Access,
-                                               Address (Callback),
-                                               Error'Unchecked_Access);
+            Ret_Context := API.Create_Context (Properties => Props (1)'Unchecked_Access,
+                                               Num_Devices => Devices'Length,
+                                               Devices => Raw_List (1)'Address,
+                                               Callback => Callback_Dispatcher'Access,
+                                               User_Data => Address (Callback),
+                                               Error => Error'Unchecked_Access);
          else
-            Ret_Context := API.Create_Context (Props (1)'Unchecked_Access,
-                                               Devices'Length,
-                                               Raw_List (1)'Address,
-                                               null, System.Null_Address,
-                                               Error'Unchecked_Access);
+            Ret_Context := API.Create_Context (Properties => Props (1)'Unchecked_Access,
+                                               Num_Devices => Devices'Length,
+                                               Devices => Raw_List (1)'Address,
+                                               Callback => null, User_Data => System.Null_Address,
+                                               Error => Error'Unchecked_Access);
          end if;
 
-         Helpers.Error_Handler (Error);
+         Helpers.Error_Handler (Error => Error);
 
          return Context'(Ada.Finalization.Controlled with Location => Ret_Context);
       end Create_For_Devices;
 
-      function Create_From_Type (Platform : Platforms.Platform'Class;
-                                 Dev_Type : Platforms.Device_Kind;
-                                 Callback : Error_Callback := null)
-                                 return Context is
+      function Create_From_Type
+        (Platform          : Platforms.Platform'Class;
+         Dev_Type          : Platforms.Device_Kind;
+         Callback          : Error_Callback := null;
+         Interop_User_Sync : Boolean := False) return Context is
          Error       : aliased Enumerations.Error_Code;
          Ret_Context : System.Address;
-         Props       : Address_List := [Value (Platform_Identifier),
-                                        CL_Object (Platform).Location,
-                                        System.Null_Address];
+         Props       : Address_List :=
+           Context_Properties (Platform => Platform, Interop_User_Sync => Interop_User_Sync);
          function To_Address is new
            Ada.Unchecked_Conversion (Source => Error_Callback,
                                      Target => System.Address);
@@ -101,17 +112,17 @@ package body CL.Contexts is
       begin
          if Callback /= null then
             Ret_Context :=
-              API.Create_Context_From_Type (Props (1)'Unchecked_Access,
-                                            To_Bitfield (Dev_Type),
-                                            Callback_Dispatcher'Access,
-                                            To_Address (Callback),
-                                            Error'Unchecked_Access);
+              API.Create_Context_From_Type (Properties => Props (1)'Unchecked_Access,
+                                            Dev_Type => To_Bitfield (Dev_Type),
+                                            Callback => Callback_Dispatcher'Access,
+                                            User_Data => To_Address (Callback),
+                                            Error => Error'Unchecked_Access);
          else
             Ret_Context :=
-              API.Create_Context_From_Type (Props (1)'Unchecked_Access,
-                                            To_Bitfield (Dev_Type), null,
-                                            System.Null_Address,
-                                            Error'Unchecked_Access);
+              API.Create_Context_From_Type (Properties => Props (1)'Unchecked_Access,
+                                            Dev_Type => To_Bitfield (Dev_Type), Callback => null,
+                                            User_Data => System.Null_Address,
+                                            Error => Error'Unchecked_Access);
          end if;
 
          Helpers.Error_Handler (Error);
@@ -151,8 +162,8 @@ package body CL.Contexts is
       Ret_List : Platforms.Device_List (Raw_List'Range);
    begin
       for Index in Raw_List'Range loop
-         Ret_List (Index) := Platforms.Device'(Ada.Finalization.Controlled with
-                                               Location => Raw_List (Index));
+         Ret_List (Index) :=
+           Platforms.Raw_Interop.Wrap_Device (Location => Raw_List (Index));
       end loop;
       return Ret_List;
    end Devices;
@@ -170,7 +181,7 @@ package body CL.Contexts is
       use type System.Address;
    begin
       while (Index < Props'Last) loop
-         if Props (Index) = Value (Platform_Identifier) then
+         if Props (Index) = Value (Context_Platform_Property) then
             return Platforms.Platform'(Ada.Finalization.Controlled with
                                        Location => Props (Index + 1));
          end if;

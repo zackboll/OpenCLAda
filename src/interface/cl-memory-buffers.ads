@@ -43,14 +43,13 @@ package CL.Memory.Buffers is
                                    return Buffer;
    end Constructors;
 
-   --function Create_Sub_Buffer_Region (Buff    : Buffer;
-   --                                   Flags   : Memory_Flags;
-   --                                   Region  : Buffer_Region) return Buffer;
+   function Create_Sub_Buffer_Region
+     (Source      : Buffer;
+      Mode        : Access_Kind;
+      Region      : Buffer_Region;
+      Host_Access : Host_Access_Kind := Host_Read_Write) return Buffer;
 
-   --  available since OpenCL 1.1
-   --function Associated_Object (Source : Buffer) return Buffer;
-
-   --function Offset (Source : Buffer) return CL.Size;
+   function Associated_Object (Source : Buffer) return Buffer;
 private
    pragma Convention (C, Buffer_Region);
 

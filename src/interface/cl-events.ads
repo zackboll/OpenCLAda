@@ -15,21 +15,48 @@
 --------------------------------------------------------------------------------
 
 with CL.Command_Queues;
+with CL.Contexts;
 
 package CL.Events is
    type Event is new Runtime_Object with null record;
 
    type Event_List is array (Integer range <>) of access constant Event'Class;
 
-   type Command_Type is (NDRange_Kernel, C_Task, Native_Kernel, Read_Buffer,
-                         Write_Buffer, Copy_Buffer, Read_Image, Write_Image,
-                         Copy_Image, Copy_Image_To_Buffer, Copy_Buffer_To_Image,
-                         Map_Buffer, Map_Image, Unmap_Mem_Object, Marker,
-                         Acquire_GL_Objects, Release_GL_Objects,
-                         Read_Buffer_Rect, Write_Buffer_Rect, Copy_Buffer_Rect,
-                         User);
+   type Command_Type is
+     (NDRange_Kernel,
+      C_Task,
+      Native_Kernel,
+      Read_Buffer,
+      Write_Buffer,
+      Copy_Buffer,
+      Read_Image,
+      Write_Image,
+      Copy_Image,
+      Copy_Image_To_Buffer,
+      Copy_Buffer_To_Image,
+      Map_Buffer,
+      Map_Image,
+      Unmap_Mem_Object,
+      Marker,
+      Acquire_GL_Objects,
+      Release_GL_Objects,
+      Read_Buffer_Rect,
+      Write_Buffer_Rect,
+      Copy_Buffer_Rect,
+      User,
+      Barrier,
+      Migrate_Mem_Objects,
+      Fill_Buffer,
+      Fill_Image);
 
    type Execution_Status is (Complete, Running, Submitted, Queued);
+   type Event_Callback is
+     access procedure (Subject : Event; Status : Int);
+
+   package Constructors is
+      function Create_User_Event
+        (Context : Contexts.Context'Class) return Event;
+   end Constructors;
 
    overriding procedure Adjust (Object : in out Event);
 
@@ -46,6 +73,17 @@ package CL.Events is
    function Reference_Count (Source : Event) return UInt;
 
    function Status (Source : Event) return Execution_Status;
+   function Status_Code (Source : Event) return Int;
+   function Context (Source : Event) return Contexts.Context;
+
+   procedure Set_User_Event_Complete (Source : Event);
+   procedure Set_User_Event_Error (Source : Event; Error_Status : Int)
+     with Pre => Error_Status < 0;
+
+   procedure Set_Callback
+     (Source   : Event;
+      Trigger  : Execution_Status;
+      Callback : Event_Callback);
 
    --  these values are only available if profiling is enabled for the
    --  Command_Queue the event belongs to
@@ -81,7 +119,11 @@ private
                          Read_Buffer_Rect     => 16#1201#,
                          Write_Buffer_Rect    => 16#1202#,
                          Copy_Buffer_Rect     => 16#1203#,
-                         User                 => 16#1204#);
+                         User                 => 16#1204#,
+                         Barrier              => 16#1205#,
+                         Migrate_Mem_Objects  => 16#1206#,
+                         Fill_Buffer          => 16#1207#,
+                         Fill_Image           => 16#1208#);
    for Command_Type'Size use UInt'Size;
 
    for Execution_Status use (Complete  => 16#0#,

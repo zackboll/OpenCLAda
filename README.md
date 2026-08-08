@@ -1,105 +1,168 @@
-# OpenCLAda - An Ada binding for the OpenCL host API
+# OpenCLAda
 
-## About
-This is OpenCLAda, a thick Ada binding for the OpenCL host API.
-This binding enables you to write OpenCL hosts in Ada. It does **not**
-enable you to write OpenCL kernels in Ada.
+OpenCLAda is a thick Ada binding for the OpenCL host API. It provides
+Ada-oriented types and operations for discovering compute devices, managing
+OpenCL objects, compiling programs, launching kernels, and transferring data.
 
-## Prerequisites
+OpenCLAda is used to write the **host side** of an OpenCL application in Ada.
+OpenCL kernels are still supplied as OpenCL C source, binaries, or built-in
+kernels; this crate does not compile Ada code as OpenCL kernels.
 
-OpenCLAda currently supports MacOSX, Linux and Windows. You need to have
+This repository is an actively modernized continuation of
+[Felix Krause's original OpenCLAda project][original-project]. The current
+development version is `0.1.0-dev`.
 
- - a GNAT compiler
- - an OpenCL implementation
- - optionally OpenGLAda (if you want to use the cl_gl extension)
+## Project status
 
-available on your system. GNAT GPL Edition is available at
-[the AdaCore website][7]. OpenCL is
-usually available from your hardware vendor. On MacOSX, it's already part of
-the operating system. On Windows, you'll need an `OpenCL.lib` file to link
-against. This is usually not part of the OpenCL implementation, but can be
-acquired as part of an SDK from your hardware vendor (eg the
-[AMD APP SDK][6]).
+The project has been migrated to:
 
-[OpenGLAda][8] is required for OpenCL's
-cl_gl extension. Just download its source and make sure the path to `opengl.gpr`
-is included in the `ADA_PROJECT_PATH` environment variable. To compile the tests,
-you also need the [GLFW library][9] version 2, which is used
-for window construction in the cl_gl tests.
+- the [Alire][alire] package manager and build workflow;
+- Ada 2022;
+- an AUnit-based test runner.
 
-## Compilation
+The binding currently includes packages for:
 
-On MacOSX and Linux, open a terminal, navigate to the OpenCLAda directory and do:
+- platforms and devices;
+- contexts and command queues;
+- buffers, images, and other memory operations;
+- programs and kernels;
+- events and profiling;
+- samplers;
+- queued data transfers and kernel execution;
+- OpenCL scalar and vector types.
 
-	$ make
+The implementation has received substantial updates, but it should still be
+considered a development release. API coverage and behavior may vary between
+OpenCL implementations, and complete conformance to every OpenCL version is not
+yet claimed.
 
-On Windows, it could work the same way if you're using MinGW or Cygwin.
-However, I didn't try either one. Anyway, to compile without make, just do
+OpenCL/OpenGL interoperability (`cl_gl`) from the original project is not
+included in the current crate. It may be restored separately in the future.
 
-	$ gnatmake -p -Popencl-cl_gl.gpr -XWindowing_System=windows
+## Requirements
 
-*Note: The variable __Windowing_System__ is shared with OpenGLAda. You have to
-provide it even when compiling without OpenGL support because it defines the way
-OpenCLAda links with your system libraries.*
+To build OpenCLAda, you need:
 
-On Windows, the compiler needs to find the `OpenCL.lib` file mentioned above. If
-you're unsure how to achieve this, just copy it into `C:\GNAT\[version]\lib` or
-wherever you installed your GNAT compiler.
+- [Alire][alire] and an Alire-compatible GNAT toolchain;
+- a system OpenCL loader/runtime providing the `OpenCL` library
+  (`libOpenCL` on typical Unix-like systems);
+- an OpenCL implementation from your hardware or platform vendor if one is not
+  already installed.
 
-*Note: The availability of an OpenCL implementation will not be tested when
-building OpenCLAda. So if you want to make sure that OpenCL is available,
-build the tests and see if they are linked properly (see below).*
+The Ada binding contains its own imported API declarations, so OpenCL C headers
+are not required merely to compile the crate. A usable OpenCL platform and
+device are required to run OpenCL applications and the test suite.
 
-If you want to build OpenCLAda without the cl_gl extension, do
+The present project file links with `-lOpenCL`. Platforms that use a different
+library name or linker convention may require an adjustment to `opencl.gpr`.
+Recent development and testing have primarily used Linux; other platforms have
+not been recently verified.
 
-   $ gprbuild -p -P opencl.gpr -XWindowing_System={windows|quartz|x11}
+## Using the crate
 
-*Note: The makefile does not support switching off cl_gl, because I'm lazy.*
+When `openclada` is available from your configured Alire indexes, add it to an
+Alire project with:
 
-## Installation
+```sh
+alr with openclada
+```
 
-OpenCLAda is just a wrapper library and does not include an installation routine.
-You can just add it to your project.
+For development against a local checkout, add the dependency and pin it to the
+checkout:
+
+```sh
+alr with openclada --use=/path/to/OpenCLAda
+```
+
+The Alire crate name is `openclada`, and its GPR project is `opencl.gpr`.
+Application code uses the root package `CL` and its child packages, for example
+`CL.Platforms`, `CL.Contexts`, `CL.Memory`, `CL.Programs`, `CL.Kernels`, and
+`CL.Queueing`.
+
+The programs under [`tests/src`](tests/src) provide working examples of platform
+and device discovery, context creation, buffers and images, program compilation,
+kernel execution, and vector passing.
+
+## Building
+
+From the repository root:
+
+```sh
+alr build
+```
+
+The GPR project supports these scenario variables:
+
+| Variable | Values | Default |
+| --- | --- | --- |
+| `mode` | `debug`, `release` | `debug` |
+| `Library_Type` | `static`, `relocatable` | `static` |
+
+They can be passed through Alire to GPRbuild, for example:
+
+```sh
+alr build -- -Xmode=release -XLibrary_Type=relocatable
+```
 
 ## Tests
 
-OpenCLAda comes with some tests (or rather, examples). I wrote them to test
-some of the basic functionality of the API. You can build them with
+The `tests` directory is a separate Alire crate. It pins `openclada` to the
+parent checkout and uses [AUnit][aunit] for its test runner.
 
-	$ make tests
+Build and run the suite from that directory:
 
-or
+```sh
+cd tests
+alr build
+alr run
+```
 
-	$ gnatmake -p -P opencl_test.gpr -XGL_Backend={windows|quartz|x11}
-	
-A basic "hello world" example is also included. After compilation,
-the executables will be located in the `bin` directory. They can only be
-executed in the `bin` directory, as they load some OpenCL kernel files through
-relative paths.
+Alternatively, after building:
 
-## Usage
+```sh
+./bin/tests
+```
 
-There is some
-[overview over the OpenCLAda API on the Wiki][1], which is outdated and will
-shortly replaced by a new documentation section on the [homepage][2].
-For more information, please consult the [Khronos OpenCL API Registry][3].
+The tests compile and execute OpenCL kernels, so successful linking alone is not
+enough: the machine must expose a functioning OpenCL platform and at least one
+suitable device. Hardware, driver, and supported-feature differences can affect
+the results.
+
+## Documentation
+
+The public package specifications under
+[`src/interface`](src/interface) are the current API reference. The test drivers
+are the most up-to-date usage examples.
+
+Additional resources:
+
+- [Khronos OpenCL API Registry][opencl-registry]
+- [Khronos OpenCL Guide][opencl-guide]
+- [Historical OpenCLAda wiki overview][historical-wiki]
+
+The historical wiki documents the original project and may not match the
+current API or build process.
 
 ## Contributing
 
-You're welcome to contribute code or file bug reports on the
-[project's page on GitHub][4].
+Bug reports and contributions are welcome on the
+[current GitHub repository][current-project]. When reporting runtime problems,
+include the operating system, compiler and Alire versions, OpenCL platform,
+device, and driver information where possible.
 
 ## License
 
-This code is distributed under the terms of the [ISC License][5], which you can
-find in the file `COPYING`.
+OpenCLAda is distributed under the [ISC License][isc-license]. See
+[`COPYING`](COPYING) for the full license text.
 
- [1]: https://github.com/flyx/OpenCLAda/wiki/Overview
- [2]: http://flyx.github.io/OpenCLAda
- [3]: http://www.khronos.org/registry/cl/
- [4]: https://github.com/flyx/OpenCLAda
- [5]: http://opensource.org/licenses/ISC
- [6]: http://developer.amd.com/tools-and-sdks/heterogeneous-computing/amd-accelerated-parallel-processing-app-sdk/
- [7]: http://libre.adacore.com/libre/download/
- [8]: https://flyx.github.io/OpenGLAda
- [9]: http://www.glfw.org/
+The original work is copyright Felix Krause. The current crate manifest credits
+Felix Krause and Zack Boll as authors.
+
+[alire]: https://alire.ada.dev/
+[aunit]: https://github.com/AdaCore/aunit
+[current-project]: https://github.com/zackboll/OpenCLAda
+[historical-wiki]: https://github.com/flyx/OpenCLAda/wiki/Overview
+[isc-license]: https://opensource.org/license/isc-license-txt
+[opencl-guide]: https://github.com/KhronosGroup/OpenCL-Guide
+[opencl-registry]: https://registry.khronos.org/OpenCL/
+[original-project]: https://github.com/flyx/OpenCLAda

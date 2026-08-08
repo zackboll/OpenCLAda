@@ -30,9 +30,11 @@ package body CL.Helpers is
 
       pragma Assert (Parameter_T'Size = UInt'Size);
    begin
-      Error := C_Getter (Object.Location, Param,
-                         Return_Value'Size / System.Storage_Unit,
-                         Return_Value'Address, Return_Size_Ptr);
+      Error := C_Getter (Object      => Object.Location, 
+                         Param       => Param,
+                         Value_Size  => Return_Value'Size / System.Storage_Unit,
+                         Value       => Return_Value'Address, 
+                         Return_Size => Return_Size_Ptr);
       Error_Handler (Error);
       return Return_Value;
    end Get_Parameter;
@@ -45,9 +47,12 @@ package body CL.Helpers is
       Return_Size_Ptr : constant Size_Ptr := Return_Size'Unchecked_Access;
       Error           : Enumerations.Error_Code;
    begin
-      Error := C_Getter (Object1.Location, Object2.Location, Param,
-                         Return_Value'Size / System.Storage_Unit,
-                         Return_Value'Address, Return_Size_Ptr);
+      Error := C_Getter (Object1    => Object1.Location, 
+                         Object2    => Object2.Location, 
+                         Param      => Param,
+                         Value_Size => Return_Value'Size / System.Storage_Unit,
+                         Value      => Return_Value'Address, 
+                         Return_Size => Return_Size_Ptr);
       Error_Handler (Error);
       return Return_Value;
    end Get_Parameter2;
@@ -62,14 +67,20 @@ package body CL.Helpers is
       pragma Assert (Parameter_T'Size = UInt'Size);
 
    begin
-      Error := C_Getter (Object.Location, Param, 0, System.Null_Address,
-                         Value_Count'Unchecked_Access);
+      Error := C_Getter (Object      => Object.Location, 
+                         Param       => Param, 
+                         Value_Size  => 0, 
+                         Value       => System.Null_Address,
+                         Return_Size => Value_Count'Unchecked_Access);
       Error_Handler (Error);
       declare
          Return_Value    : Return_T (1 .. Integer (Value_Count / Unit_Size));
       begin
-         Error := C_Getter (Object.Location, Param, Value_Count,
-                            Return_Value (1)'Address, null);
+         Error := C_Getter (Object      => Object.Location, 
+                            Param       => Param, 
+                            Value_Size  => Value_Count,
+                            Value       => Return_Value (1)'Address, 
+                            Return_Size => null);
          Error_Handler (Error);
          return Return_Value;
       end;
@@ -84,14 +95,20 @@ package body CL.Helpers is
 
       pragma Assert (Parameter_T'Size = UInt'Size);
    begin
-      Error := C_Getter (Object.Location, Param, 0, null,
-                         Value_Count'Unchecked_Access);
-      Error_Handler (Error);
+      Error := C_Getter (Object      => Object.Location, 
+                         Param       => Param, 
+                         Value_Size  => 0, 
+                         Value       => null,
+                         Return_Size => Value_Count'Unchecked_Access);
+      Error_Handler (Error => Error);
       declare
          Return_Value    : Return_T (1 .. Integer (Value_Count / Unit_Size));
       begin
-         Error := C_Getter (Object.Location, Param, Value_Count,
-                            Return_Value (1)'Unchecked_Access, null);
+         Error := C_Getter (Object      => Object.Location, 
+                            Param       => Param, 
+                            Value_Size  => Value_Count,
+                            Value       => Return_Value (1)'Unchecked_Access, 
+                            Return_Size => null);
          Error_Handler (Error);
          return Return_Value;
       end;
@@ -103,15 +120,21 @@ package body CL.Helpers is
       Error       : Enumerations.Error_Code;
       pragma Assert (Parameter_T'Size = UInt'Size);
    begin
-      Error := C_Getter (Object.Location, Param, 0, null,
-                         Value_Count'Unchecked_Access);
+      Error := C_Getter (Object      => Object.Location, 
+                         Param       => Param, 
+                         Value_Size  => 0, 
+                         Value       => null,
+                         Return_Size => Value_Count'Unchecked_Access);
       Error_Handler (Error);
       declare
          Raw_String : aliased Interfaces.C.char_array :=
            [1 .. Interfaces.C.size_t (Value_Count) => <>];
       begin
-         Error := C_Getter (Object.Location, Param, Value_Count,
-                            Raw_String'Access, null);
+         Error := C_Getter (Object      => Object.Location, 
+                            Param       => Param, 
+                            Value_Size  => Value_Count,
+                            Value       => Raw_String'Access, 
+                            Return_Size => null);
          Error_Handler (Error);
          return Interfaces.C.To_Ada (Raw_String);
       end;
@@ -127,14 +150,22 @@ package body CL.Helpers is
 
       pragma Assert (Parameter_T'Size = UInt'Size);
    begin
-      Error := C_Getter (Object1.Location, Object2.Location, Param, 0,
-                         System.Null_Address, Value_Count'Unchecked_Access);
+      Error := C_Getter (Object1     => Object1.Location, 
+                         Object2     => Object2.Location, 
+                         Param       => Param, 
+                         Value_Size  => 0,
+                         Value       => System.Null_Address, 
+                         Return_Size => Value_Count'Unchecked_Access);
       Error_Handler (Error);
       declare
          Return_Value    : Return_T (1 .. Integer (Value_Count / Unit_Size));
       begin
-         Error := C_Getter (Object1.Location, Object2.Location, Param,
-                            Value_Count, Return_Value (1)'Address, null);
+         Error := C_Getter (Object1     => Object1.Location, 
+                            Object2     => Object2.Location, 
+                            Param       => Param,
+                            Value_Size  => Value_Count, 
+                            Value       => Return_Value (1)'Address, 
+                            Return_Size => null);
          Error_Handler (Error);
          return Return_Value;
       end;
@@ -147,14 +178,20 @@ package body CL.Helpers is
 
       pragma Assert (Parameter_T'Size = UInt'Size);
    begin
-      Error := C_Getter (Object.Location, Param, 0, System.Null_Address,
-                         Object_Count'Unchecked_Access);
+      Error := C_Getter (Object      => Object.Location, 
+                         Param       => Param, 
+                         Num_Entries => 0, 
+                         Devices     => System.Null_Address,
+                         Num_Devices => Object_Count'Unchecked_Access);
       Error_Handler (Error);
       declare
          Return_Value    : Return_T (1 .. Integer (Object_Count));
       begin
-         Error := C_Getter (Object.Location, Param, Object_Count,
-                            Return_Value (1)'Address, null);
+         Error := C_Getter (Object      => Object.Location, 
+                            Param       => Param, 
+                            Num_Entries => Object_Count,
+                            Devices     => Return_Value (1)'Address, 
+                            Num_Devices => null);
          Error_Handler (Error);
          return Return_Value;
       end;
@@ -168,6 +205,12 @@ package body CL.Helpers is
 
    begin
       case Error is
+      when E_Invalid_Device_Partition_Count =>
+         raise Invalid_Device_Partition_Count;
+      when E_Invalid_Linker_Options       => raise Invalid_Linker_Options;
+      when E_Invalid_Compiler_Options     => raise Invalid_Compiler_Options;
+      when E_Invalid_Image_Descriptor     => raise Invalid_Image_Descriptor;
+      when E_Invalid_Property             => raise Invalid_Property;
       when E_Invalid_Global_Work_Size     => raise Invalid_Global_Work_Size;
       when E_Invalid_Mip_Level            => raise Invalid_Mip_Level;
       when E_Invalid_Buffer_Size          => raise Invalid_Buffer_Size;
@@ -269,9 +312,9 @@ package body CL.Helpers is
       use Ada.Strings.Unbounded;
       Contents : Unbounded_String := Null_Unbounded_String;
    begin
-      while not IO.End_Of_File (File) loop
-         Append (Contents, IO.Get_Line (File));
-         Append (Contents, ASCII.LF);
+      while not IO.End_Of_File (File => File) loop
+         Append (Source => Contents, New_Item => IO.Get_Line (File));
+         Append (Source => Contents, New_Item => ASCII.LF);
       end loop;
       return To_String (Contents);
    end Read_File;
